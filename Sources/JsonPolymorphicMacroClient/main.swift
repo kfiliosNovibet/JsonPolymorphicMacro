@@ -1,4 +1,5 @@
 import JsonPolymorphicMacro
+import Foundation
 
 protocol Response: Decodable {}
 
@@ -20,8 +21,8 @@ struct ListResponse: Response {
                                               "Single":SingleResponse.self,
                                               "Many":ListResponse.self]]], Response.self))
 struct Test: Decodable {
-    let name: String
-    let a: String
+    let name: String?
+    let a: String?
 }
 
 //

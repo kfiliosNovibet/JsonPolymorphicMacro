@@ -38,19 +38,19 @@ final class JsonPolymorphicMacroTests: XCTestCase {
                                                           "Single":SingleResponse.self,
                                                           "Many":ListResponse.self]]], Response.self))
             struct Test: Decodable {
-                let name: String
-                let a: String
+                let name: String?
+                let a: String?
             }
 
             """,
             expandedSource: """
             struct Test: Decodable {
-                let name: String
-                let a: String
+                let name: String?
+                let a: String?
 
-                let content: Response
+                let content: Response?
 
-                let type: String
+                let type: String?
 
                 enum CodingKeys: String, CodingKey {
                     case name
@@ -59,16 +59,19 @@ final class JsonPolymorphicMacroTests: XCTestCase {
                 }
 
                 init(from decoder: Decoder) throws  {
+                    let values = try decoder.container(keyedBy: CodingKeys.self)
                     self.name =  try values.decodeIfPresent(String.self, forKey: .name)
                     self.a =  try values.decodeIfPresent(String.self, forKey: .a)
                     self.type =  try values.decodeIfPresent(String.self, forKey: .type)
-                    switch type {
-                    case Empty
+                    switch self.type {
+                    case "Empty":
                         content = try values.decodeIfPresent(EmptyResponse.self, forKey: .type)
-                    case Many
+                    case "Many":
                         content = try values.decodeIfPresent(ListResponse.self, forKey: .type)
-                    case Single
+                    case "Single":
                         content = try values.decodeIfPresent(SingleResponse.self, forKey: .type)
+                    default:
+                        content = nil
                     }
                 }
             }
