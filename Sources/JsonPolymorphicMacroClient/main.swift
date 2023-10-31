@@ -17,9 +17,15 @@ struct ListResponse: Response {
     let success: Bool
 }
 
+struct WhatEverResponse: Response {
+    let sirName: String
+    let success: Bool
+}
+
 @JsonPolymorphicKeys((["$type": ["content" : ["Empty":EmptyResponse.self,
                                               "Single":SingleResponse.self,
-                                              "Many":ListResponse.self]]], Response.self))
+                                              "Many":ListResponse.self,
+                                              "WhatElse":WhatEverResponse.self]]], Response.self))
 struct Test: Decodable {
     let name: String?
     let a: String?
