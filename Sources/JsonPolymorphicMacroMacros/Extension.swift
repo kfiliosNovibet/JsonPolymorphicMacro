@@ -14,7 +14,7 @@ public extension JsonPolymorphicMacro {
         of attribute: AttributeSyntax,
         attachedTo declaration: some DeclGroupSyntax,
         in context: some MacroExpansionContext
-    ) -> ([String:[String:[String:String]]])? {
+    ) -> ([String:[String:[String:String]]], String)? {
         guard case let .argumentList(arguments) = attribute.argument
         else {
 //            context.diagnose(CodingKeysMacroDiagnostic.noArgument.diagnose(at: attribute))
@@ -26,18 +26,38 @@ public extension JsonPolymorphicMacro {
             return nil
         }
 //            context.diagnose(CodingKeysMacroDiagnostic.invalidArgument.diagnose(at: attribute))
-        guard let jsonKeysExp = attribute.arguments?.as(LabeledExprListSyntax.self) else {
+        guard let args = attribute.arguments?
+            .as(LabeledExprListSyntax.self)?
+            .first?
+            .expression
+            .as(TupleExprSyntax.self) else {
+            return nil
+        }
+        guard let modelType = args.elements.last?
+            .as(LabeledExprSyntax.self)?
+            .expression
+            .as(MemberAccessExprSyntax.self)?
+            .base?
+            .as(DeclReferenceExprSyntax.self)?
+            .baseName.text else { return nil }
+        guard let jsonExp = args
+            .elements
+            .first?
+            .as(LabeledExprSyntax.self)?
+            .expression
+            .as(DictionaryExprSyntax.self)
+        else  {
             return nil
         }
         
         var returnKeysData: [String:[String:[String:String]]] = [:]
-        jsonKeysExp.forEach { exp in
-            guard let jsonExp = exp.expression.as(DictionaryExprSyntax.self) else { return }
-            guard let jsonDict = jsonExp.content.as(DictionaryElementListSyntax.self) else { return }
+//        jsonKeysExp.forEach { exp in
+//            guard let jsonExp = exp.expression.as(DictionaryExprSyntax.self) else { return }
+            guard let jsonDict = jsonExp.content.as(DictionaryElementListSyntax.self) else { return nil }
             //TODO we can recheck here for many json polymorphic keys
-            guard let jsonKeyStrExp = jsonDict.first?.key.as(StringLiteralExprSyntax.self) else { return }
-            guard let jsoKey = jsonKeyStrExp.segments.first?.as(StringSegmentSyntax.self)?.content.text else { return }
-            guard let jsonKeyModelMapExp = jsonDict.first?.value.as(DictionaryExprSyntax.self)?.content.as(DictionaryElementListSyntax.self) else { return }
+            guard let jsonKeyStrExp = jsonDict.first?.key.as(StringLiteralExprSyntax.self) else { return nil }
+            guard let jsoKey = jsonKeyStrExp.segments.first?.as(StringSegmentSyntax.self)?.content.text else { return nil }
+            guard let jsonKeyModelMapExp = jsonDict.first?.value.as(DictionaryExprSyntax.self)?.content.as(DictionaryElementListSyntax.self) else { return nil }
             print("========== PolyKey \(jsoKey) ================")
             jsonKeyModelMapExp.forEach { jsonKeyModel in
                 var variableDecod: [String:[String:String]] = [:]
@@ -72,8 +92,8 @@ public extension JsonPolymorphicMacro {
                 returnKeysData[jsoKey] = variableDecod
             }
             print("==========================")
-        }
-        return returnKeysData
+//        }
+        return (returnKeysData, modelType)
     }
 }
 

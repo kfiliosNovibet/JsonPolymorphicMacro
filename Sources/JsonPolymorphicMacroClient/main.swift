@@ -1,24 +1,24 @@
 import JsonPolymorphicMacro
 
-protocol Response {}
+protocol Response: Decodable {}
 
-struct EmptyResponse: Decodable, Response {
+struct EmptyResponse: Response {
     let success: Bool
 }
 
-struct SingleResponse: Decodable, Response {
+struct SingleResponse: Response {
     let name: String
     let success: Bool
 }
 
-struct ListResponse: Decodable, Response {
+struct ListResponse: Response {
     let name: [String]
     let success: Bool
 }
 
-@JsonPolymorphicKeys(["$type": ["content" : ["Empty":EmptyResponse.self,
-                                             "Single":SingleResponse.self,
-                                             "Many":ListResponse.self]]])
+@JsonPolymorphicKeys((["$type": ["content" : ["Empty":EmptyResponse.self,
+                                              "Single":SingleResponse.self,
+                                              "Many":ListResponse.self]]], Response.self))
 struct Test: Decodable {
     let name: String
     let a: String

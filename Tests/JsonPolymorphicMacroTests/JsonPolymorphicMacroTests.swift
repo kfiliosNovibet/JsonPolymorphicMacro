@@ -34,24 +34,9 @@ final class JsonPolymorphicMacroTests: XCTestCase {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
-            struct EmptyResponse: Decodable, Response {
-                let success: Bool
-            }
-
-            struct SingleResponse: Decodable, Response {
-                let name: String
-                let success: Bool
-            }
-
-            struct ListResponse: Decodable, Response {
-                let name: [String]
-                let success: Bool
-            }
-
-
-            @JsonPolymorphicKeys(["$type": ["content" : ["Empty":EmptyResponse.self,
-                                                         "Single":SingleResponse.self,
-                                                         "Many":ListResponse.self]]])
+            @JsonPolymorphicKeys((["$type": ["content" : ["Empty":EmptyResponse.self,
+                                                          "Single":SingleResponse.self,
+                                                          "Many":ListResponse.self]]], Response.self))
             struct Test: Decodable {
                 let name: String
                 let a: String
@@ -59,19 +44,32 @@ final class JsonPolymorphicMacroTests: XCTestCase {
 
             """,
             expandedSource: """
-            let content: String
+            struct Test: Decodable {
+                let name: String
+                let a: String
 
-            init(from decoder: Decoder) throws  {
-                self.name =  try values.decodeIfPresent(String.self, forKey: .type)
-                self.a =  try values.decodeIfPresent(String.self, forKey: .type)
-                let type =  try values.decodeIfPresent(String.self, forKey: .type)
-                switch type {
-                case Empty
-                    type = try values.decodeIfPresent(EmptyResponse.self, forKey: .type)
-                case Many
-                    type = try values.decodeIfPresent(ListResponse.self, forKey: .type)
-                case Single
-                    type = try values.decodeIfPresent(SingleResponse.self, forKey: .type)
+                let content: Response
+
+                let type: String
+
+                enum CodingKeys: String, CodingKey {
+                    case name
+                    case a
+                    case type = "$type"
+                }
+
+                init(from decoder: Decoder) throws  {
+                    self.name =  try values.decodeIfPresent(String.self, forKey: .name)
+                    self.a =  try values.decodeIfPresent(String.self, forKey: .a)
+                    self.type =  try values.decodeIfPresent(String.self, forKey: .type)
+                    switch type {
+                    case Empty
+                        content = try values.decodeIfPresent(EmptyResponse.self, forKey: .type)
+                    case Many
+                        content = try values.decodeIfPresent(ListResponse.self, forKey: .type)
+                    case Single
+                        content = try values.decodeIfPresent(SingleResponse.self, forKey: .type)
+                    }
                 }
             }
             """,

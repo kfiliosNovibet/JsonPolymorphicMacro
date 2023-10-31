@@ -56,7 +56,7 @@ public struct JsonPolymorphicMacro: MemberMacro {
         let variablesName = variableDecl.compactMap { $0.bindings.first?.pattern }
         let variablesType = variableDecl.compactMap { $0.bindings.first?.typeAnnotation?.type }
         
-        guard let polyMorphicData = decodeExpansion(of: node, attachedTo: declaration, in: context) else {
+        guard let (polyMorphicData, dataGenericType) = decodeExpansion(of: node, attachedTo: declaration, in: context) else {
             return []
         }
 //        return []
@@ -68,11 +68,12 @@ public struct JsonPolymorphicMacro: MemberMacro {
             return[]
         }
         
-        let polymorphicVariableSet = "let \(polymorphicParamData.key): String"
+        let polymorphicVariableSet = "let \(polymorphicParamData.key): \(dataGenericType)"
         var codeBlockGen: [DeclSyntax] = [DeclSyntax(stringLiteral: polymorphicVariableSet)]
         let polyKey = polyMorphicData.first!.key
         let polyKeyLocalVariable = polyKey.first?.isLetter == true ? polyKey : String(polyKey.dropFirst())
-        
+        let jsonPolyKeyVariable = "let \(polyKeyLocalVariable): String"
+        codeBlockGen.append(DeclSyntax(stringLiteral: jsonPolyKeyVariable))
         // MARK:  Coding Keys Enum block
         var parameters = variablesName
                     .map { variable in
@@ -93,13 +94,13 @@ public struct JsonPolymorphicMacro: MemberMacro {
             initBlock.append(CodeBlockItemSyntax("self.\(name) =  try values.decodeIfPresent(\(type).self, forKey: .\(raw: name))"))
         }
         //Add any change here to make key deserialize more dynamic
-        initBlock.append(CodeBlockItemSyntax("let \(raw: polyKeyLocalVariable) =  try values.decodeIfPresent(String.self, forKey: .type)"))
+        initBlock.append(CodeBlockItemSyntax("self.\(raw: polyKeyLocalVariable) =  try values.decodeIfPresent(String.self, forKey: .type)"))
         let modelTypes = polyMorphicData.first?.value.first?.value
         var switchCaseSynt = SwitchCaseListSyntax()
 //        initBlock.append(CodeBlockItemSyntax("switch \(raw: polyKeyLocalVariable) {"))
         modelTypes?.forEach{ (key: String, value: String) in
             let caseBlock = SwitchCaseSyntax("case \(raw: key)", statementsBuilder: {
-                CodeBlockItemSyntax("\(raw: polyKeyLocalVariable) = try values.decodeIfPresent(\(raw: value).self, forKey: .\(raw: polyKeyLocalVariable))")
+                CodeBlockItemSyntax("\(raw: polymorphicParamData.key) = try values.decodeIfPresent(\(raw: value).self, forKey: .\(raw: polyKeyLocalVariable))")
             })
             switchCaseSynt.append(SwitchCaseListSyntax.Element.init(caseBlock))
             
