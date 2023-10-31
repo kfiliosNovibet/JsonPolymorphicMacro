@@ -59,9 +59,20 @@ final class JsonPolymorphicMacroTests: XCTestCase {
 
             """,
             expandedSource: """
-            init(name: String, a: String) {
-                self.name = name
-                self.a = a
+            let content: String
+
+            init(from decoder: Decoder) throws  {
+                self.name =  try values.decodeIfPresent(String.self, forKey: .type)
+                self.a =  try values.decodeIfPresent(String.self, forKey: .type)
+                let type =  try values.decodeIfPresent(String.self, forKey: .type)
+                switch type {
+                case Empty
+                    type = try values.decodeIfPresent(EmptyResponse.self, forKey: .type)
+                case Many
+                    type = try values.decodeIfPresent(ListResponse.self, forKey: .type)
+                case Single
+                    type = try values.decodeIfPresent(SingleResponse.self, forKey: .type)
+                }
             }
             """,
             macros: testMacros

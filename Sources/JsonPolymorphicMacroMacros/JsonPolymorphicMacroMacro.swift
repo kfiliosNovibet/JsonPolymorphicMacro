@@ -67,46 +67,58 @@ public struct JsonPolymorphicMacro: MemberMacro {
             //TODO promt here error
             return[]
         }
-        // MARK:  Init block
-        let polyKey = polyMorphicData.first!.key
-        let polyKeyLocalVariable = polyKey.first?.isLetter == true ? polyKey : String(polyKey.dropFirst())
-        var initBlock = CodeBlockItemListSyntax()
-        for (name, type) in zip(variablesName, variablesType) {
-            initBlock.append(CodeBlockItemSyntax("self.\(name) =  try values.decodeIfPresent(\(type).self, forKey: .type)"))
-        }
         
         let polymorphicVariableSet = "let \(polymorphicParamData.key): String"
         var codeBlockGen: [DeclSyntax] = [DeclSyntax(stringLiteral: polymorphicVariableSet)]
+        let polyKey = polyMorphicData.first!.key
+        let polyKeyLocalVariable = polyKey.first?.isLetter == true ? polyKey : String(polyKey.dropFirst())
+        
+        // MARK:  Coding Keys Enum block
+        var parameters = variablesName
+                    .map { variable in
+                        return  "case \(variable)"
+                    }
+                    .joined(separator: "\n") 
+        parameters.append("\n")
+        parameters.append("case \(polyKeyLocalVariable) = \"\(polyKey)\"")
+        let enumBlock = """
+            enum CodingKeys: String, CodingKey {
+                \(parameters)
+            }
+            """
+        codeBlockGen.append(DeclSyntax(stringLiteral: enumBlock))
+        // MARK:  Init block
+        var initBlock = CodeBlockItemListSyntax()
+        for (name, type) in zip(variablesName, variablesType) {
+            initBlock.append(CodeBlockItemSyntax("self.\(name) =  try values.decodeIfPresent(\(type).self, forKey: .\(raw: name))"))
+        }
         //Add any change here to make key deserialize more dynamic
         initBlock.append(CodeBlockItemSyntax("let \(raw: polyKeyLocalVariable) =  try values.decodeIfPresent(String.self, forKey: .type)"))
         let modelTypes = polyMorphicData.first?.value.first?.value
-        
         var switchCaseSynt = SwitchCaseListSyntax()
 //        initBlock.append(CodeBlockItemSyntax("switch \(raw: polyKeyLocalVariable) {"))
         modelTypes?.forEach{ (key: String, value: String) in
-//            switchCaseSynt.append(SwitchListIte)
-//            let caseBlock = SwitchCaseSyntax("case \(raw: key)", statementsBuilder: {
-//                CodeBlockItemSyntax("\(raw: polyKeyLocalVariable) = try values.decodeIfPresent(\(raw: value).self, forKey: .\(raw: polyKeyLocalVariable))")
-//            })
-//            switchCaseSynt.append(SwitchCaseListSyntax.Element.init(caseBlock))
+            let caseBlock = SwitchCaseSyntax("case \(raw: key)", statementsBuilder: {
+                CodeBlockItemSyntax("\(raw: polyKeyLocalVariable) = try values.decodeIfPresent(\(raw: value).self, forKey: .\(raw: polyKeyLocalVariable))")
+            })
+            switchCaseSynt.append(SwitchCaseListSyntax.Element.init(caseBlock))
             
 //            initBlock.append(CodeBlockItemSyntax("case \(raw: key) :"))
 //            initBlock.append(CodeBlockItemSyntax("  \(raw: polyKeyLocalVariable) = try values.decodeIfPresent(\(raw: value).self, forKey: .\(raw: polyKeyLocalVariable))"))
         }
-//        do {
-//            let test = try SwitchExprSyntax.init("switch type", casesBuilder: {switchCaseSynt})
-//            initBlock.append(CodeBlockItemSyntax.init(item: .init(test)))
-//        } catch let error {
-//            //TODO throw  error
-//            throw error
-//        }
-        initBlock.append(CodeBlockItemSyntax("}"))
+        do {
+            let test = try SwitchExprSyntax.init("switch type", casesBuilder: {switchCaseSynt})
+            initBlock.append(CodeBlockItemSyntax.init(item: .init(test)))
+        } catch let error {
+            //TODO throw  error
+            throw error
+        }
         let initializer = try InitializerDeclSyntax(JsonPolymorphicMacro.generateInitialCode(variablesName: variablesName,
                                                                                              variablesType: variablesType,
                                                                                              polyMorphicData: polyMorphicData)) { initBlock }
         
         codeBlockGen.append(DeclSyntax(initializer))
-        
+//        return []
         return codeBlockGen
     }
     

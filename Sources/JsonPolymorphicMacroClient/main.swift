@@ -32,4 +32,3 @@ let b = 25
 let (result, code) = #stringify(a + b)
 
 print("The value \(a) was produced by the code \"\(b)\"")
-
