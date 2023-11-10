@@ -1,9 +1,8 @@
 import JsonPolymorphicMacro
 import Foundation
 
-//protocol Response: Decodable {
-//    var success: Bool { get }
-//}
+protocol Response: Decodable {
+}
 
 struct EmptyResponse: Response {
     let success: Bool}
@@ -44,9 +43,6 @@ struct Test2: Decodable {
     let a: String?
 }
 
-protocol Response: Decodable {
-}
-
 struct TelephoneResponse: Response {
     let number: [String]
 }
@@ -69,11 +65,15 @@ struct PolyResponse: Decodable {
     let cities: [String]?
 }
 
-
-
-
 let test = try! JSONDecoder().decode(Test.self, from: "{ \"$type\": \"Single\", \"content\": { \"success\" : true, \"name\" :\"John\"}}".data(using: .utf8)!)
 print("The name is: \((test.content as? SingleResponse)?.name ?? "")")
 
 let test2 = try! JSONDecoder().decode(Test2.self, from: "{ \"$type\": \"Empty\", \"content\": { \"success\" : true, \"name\" :\"John\"}}".data(using: .utf8)!)
 print("The name is: \(test2.type ?? "")")
+
+
+let testTelephoneArray = try! JSONDecoder().decode(PolyResponse.self, from: "{ \"type\": \"Telephones\", \"cities\":[\"Athens\", \"Krakow\", \"Catania\"]  ,\"content\": { \"number\" : [\"2103722001\", \"48224202020\", \"095580014\"]}}".data(using: .utf8)!)
+print("The name is: \((testTelephoneArray.content as? TelephoneResponse)?.number ?? [""])")
+
+let testAdressesArray = try! JSONDecoder().decode(PolyResponse.self, from: "{\"type\" : \"Adresses\",\"cities\" : [\"Athens\", \"Krakow\", \"Catania\"],\"content\": {\"adresses\": [{\"number\": \"12\", \"street\": \"Ermou\"}, {\"number\": \"12\", \"street\": \"Ermou\"}, {\"number\": \"12\", \"street\": \"Ermou\"}]}}".data(using: .utf8)!)
+print("The name is: \((testAdressesArray.content as? AdressesResponse)?.adresses ?? [])")
