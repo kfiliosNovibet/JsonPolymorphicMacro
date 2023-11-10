@@ -49,11 +49,3 @@ print("The name is: \((test.content as? SingleResponse)?.name ?? "")")
 
 let test2 = try! JSONDecoder().decode(Test2.self, from: "{ \"$type\": \"Empty\", \"content\": { \"success\" : true, \"name\" :\"John\"}}".data(using: .utf8)!)
 print("The name is: \(test2.type ?? "")")
-
-//test.
-var a = 17
-let b = 25
-
-let (result, code) = #stringify(a + b)
-
-print("The value \(a) was produced by the code \"\(b)\"")
