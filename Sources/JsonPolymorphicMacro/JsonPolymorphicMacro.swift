@@ -14,3 +14,6 @@ public macro stringify<T>(_ value: T) -> (T, String) = #externalMacro(module: "J
 // (["jsonKeyForPolymorfism",["jsonPolyMorficVariableKey": ["jsonKeyForPolymorfism":DecodableModel]]], DecodableModelTypesConformer)
 @attached(member, names: arbitrary)
 public macro JsonPolymorphicKeys<T>(_ type: ([String:[String:[String:Decodable.Type]]], T)) = #externalMacro(module: "JsonPolymorphicMacroMacros", type: "JsonPolymorphicMacro")
+
+@attached(member, names: arbitrary)
+public macro JsonPolymorphicKeys<Decodable>(_ type: ([JsonPolymorphicTypeData<Decodable>])) = #externalMacro(module: "JsonPolymorphicMacroMacros", type: "JsonPolymorphicMacro")

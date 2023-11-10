@@ -30,13 +30,70 @@ final class JsonPolymorphicMacroTests: XCTestCase {
 //    }
     
     
-    func testJsonPolymporphicMacro() throws {
+//    func testJsonPolymporphicMacro() throws {
+//        #if canImport(JsonPolymorphicMacroMacros)
+//        assertMacroExpansion(
+//            """
+//            @JsonPolymorphicKeys((["$type": ["content" : ["Empty":EmptyResponse.self,
+//                                                          "Single":SingleResponse.self,
+//                                                          "Many":ListResponse.self]]], Response.self))
+//            struct Test: Decodable {
+//                let name: String?
+//                let a: String?
+//            }
+//
+//            """,
+//            expandedSource: """
+//            struct Test: Decodable {
+//                let name: String?
+//                let a: String?
+//
+//                let content: Response?
+//
+//                let type: String?
+//
+//                enum CodingKeys: String, CodingKey {
+//                    case name
+//                    case a
+//                    case type = "$type"
+//                    case content
+//                }
+//
+//                init(from decoder: Decoder) throws  {
+//                    let values = try decoder.container(keyedBy: CodingKeys.self)
+//                    self.name =  try values.decodeIfPresent(String.self, forKey: .name)
+//                    self.a =  try values.decodeIfPresent(String.self, forKey: .a)
+//                    self.type =  try values.decodeIfPresent(String.self, forKey: .type)
+//                    switch self.type {
+//                    case "Empty":
+//                        content = try values.decodeIfPresent(EmptyResponse.self, forKey: .content)
+//                    case "Many":
+//                        content = try values.decodeIfPresent(ListResponse.self, forKey: .content)
+//                    case "Single":
+//                        content = try values.decodeIfPresent(SingleResponse.self, forKey: .content)
+//                    default:
+//                        content = nil
+//                    }
+//                }
+//            }
+//            """,
+//            macros: testMacros
+//        )
+//        #else
+//        throw XCTSkip("macros are only supported when running tests for the host platform")
+//        #endif
+//    }
+    
+    func testJsonPolymporphicMacroClass() throws {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
-            @JsonPolymorphicKeys((["$type": ["content" : ["Empty":EmptyResponse.self,
-                                                          "Single":SingleResponse.self,
-                                                          "Many":ListResponse.self]]], Response.self))
+            @JsonPolymorphicKeys([JsonPolymorphicTypeData(key: "$type", polyVarName: "content",
+                                                                 decodableParentType: Response.self,
+                                                                 decodingTypes: ["Empty":EmptyResponse.self,
+                                                                                 "Single":SingleResponse.self,
+                                                                                 "Many":ListResponse.self,
+                                                                                 "WhatElse":WhatEverResponse.self])])
             struct Test: Decodable {
                 let name: String?
                 let a: String?
@@ -56,6 +113,7 @@ final class JsonPolymorphicMacroTests: XCTestCase {
                     case name
                     case a
                     case type = "$type"
+                    case content
                 }
 
                 init(from decoder: Decoder) throws  {
@@ -65,11 +123,13 @@ final class JsonPolymorphicMacroTests: XCTestCase {
                     self.type =  try values.decodeIfPresent(String.self, forKey: .type)
                     switch self.type {
                     case "Empty":
-                        content = try values.decodeIfPresent(EmptyResponse.self, forKey: .type)
+                        content = try values.decodeIfPresent(EmptyResponse.self, forKey: .content)
                     case "Many":
-                        content = try values.decodeIfPresent(ListResponse.self, forKey: .type)
+                        content = try values.decodeIfPresent(ListResponse.self, forKey: .content)
                     case "Single":
-                        content = try values.decodeIfPresent(SingleResponse.self, forKey: .type)
+                        content = try values.decodeIfPresent(SingleResponse.self, forKey: .content)
+                    case "WhatElse":
+                        content = try values.decodeIfPresent(WhatEverResponse.self, forKey: .content)
                     default:
                         content = nil
                     }

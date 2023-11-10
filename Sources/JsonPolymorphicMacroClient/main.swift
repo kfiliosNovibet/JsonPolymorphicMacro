@@ -1,15 +1,16 @@
 import JsonPolymorphicMacro
 import Foundation
 
-protocol Response: Decodable {}
-
-struct EmptyResponse: Response {
-    let success: Bool
+protocol Response: Decodable {
+    var success: Bool { get }
 }
 
+struct EmptyResponse: Response {
+    let success: Bool}
+
 struct SingleResponse: Response {
-    let name: String
     let success: Bool
+    let name: String
 }
 
 struct ListResponse: Response {
@@ -31,8 +32,25 @@ struct Test: Decodable {
     let a: String?
 }
 
-//
-//@CodingKeys(["a": CodableTest])
+
+@JsonPolymorphicKeys([JsonPolymorphicTypeData(key: "$type", polyVarName: "content",
+                                              decodableParentType: Response.self,
+                                              decodingTypes: ["Empty":EmptyResponse.self,
+                                                              "Single":SingleResponse.self,
+                                                              "Many":ListResponse.self,
+                                                              "WhatElse":WhatEverResponse.self])])
+struct Test2: Decodable {
+    let name: String?
+    let a: String?
+}
+
+let test = try! JSONDecoder().decode(Test.self, from: "{ \"$type\": \"Single\", \"content\": { \"success\" : true, \"name\" :\"John\"}}".data(using: .utf8)!)
+print("The name is: \((test.content as? SingleResponse)?.name ?? "")")
+
+let test2 = try! JSONDecoder().decode(Test2.self, from: "{ \"$type\": \"Empty\", \"content\": { \"success\" : true, \"name\" :\"John\"}}".data(using: .utf8)!)
+print("The name is: \(test2.type ?? "")")
+
+//test.
 var a = 17
 let b = 25
 

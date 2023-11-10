@@ -67,7 +67,13 @@ public struct JsonPolymorphicMacro: MemberMacro {
             //TODO promt here error
             return[]
         }
-        
+        /**polymorphicParamData -> ["$type":
+                                ["content": [  "Empty" :  "EmptyResponse",
+                                          "Single" : "SingleResponse",
+                                          "Many" : "ListResponse",
+                                          "WhatElse" : "WhatEverResponse"]]]
+            dataGenericType ->  "Response"    
+         **/
         let polymorphicVariableSet = "let \(polymorphicParamData.key): \(dataGenericType)?"
         var codeBlockGen: [DeclSyntax] = [DeclSyntax(stringLiteral: polymorphicVariableSet)]
         let polyKey = polyMorphicData.first!.key
@@ -82,6 +88,7 @@ public struct JsonPolymorphicMacro: MemberMacro {
                     .joined(separator: "\n") 
         parameters.append("\n")
         parameters.append("case \(polyKeyLocalVariable) = \"\(polyKey)\"")
+        parameters.append("case \(polymorphicParamData.key)")
         let enumBlock = """
             enum CodingKeys: String, CodingKey {
                 \(parameters)
@@ -99,7 +106,7 @@ public struct JsonPolymorphicMacro: MemberMacro {
             initBlock.append(CodeBlockItemSyntax("self.\(name) =  try values.decodeIfPresent(\(raw: finalType!).self, forKey: .\(raw: name))"))
         }
         //Add any change here to make key deserialize more dynamic
-        initBlock.append(CodeBlockItemSyntax("self.\(raw: polyKeyLocalVariable) =  try values.decodeIfPresent(String.self, forKey: .type)"))
+        initBlock.append(CodeBlockItemSyntax("self.\(raw: polyKeyLocalVariable) =  try values.decodeIfPresent(String.self, forKey: .\(raw:polyKeyLocalVariable))"))
         guard let modelTypes = polyMorphicData.first?.value.first?.value else {
             //TODO show error
             return []
@@ -108,7 +115,7 @@ public struct JsonPolymorphicMacro: MemberMacro {
         modelTypes.keys.sorted().forEach { key in
             let value = modelTypes[key]!
             let caseBlock = SwitchCaseSyntax("case \"\(raw: key)\":", statementsBuilder: {
-                CodeBlockItemSyntax("\(raw: polymorphicParamData.key) = try values.decodeIfPresent(\(raw: value).self, forKey: .\(raw: polyKeyLocalVariable))")
+                CodeBlockItemSyntax("\(raw: polymorphicParamData.key) = try values.decodeIfPresent(\(raw: value).self, forKey: .\(raw: polymorphicParamData.key))")
             })
             switchCaseSynt.append(SwitchCaseListSyntax.Element.init(caseBlock))
             
