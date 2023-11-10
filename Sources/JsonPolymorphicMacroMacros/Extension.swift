@@ -15,13 +15,13 @@ public extension JsonPolymorphicMacro {
         attachedTo declaration: some DeclGroupSyntax,
         in context: some MacroExpansionContext
     ) -> ([String:[String:[String:String]]], String)? {
-        guard case let .argumentList(arguments) = attribute.argument
+        guard case let .argumentList(arguments) = attribute.arguments
         else {
             context.diagnose(JsonPolymorphicMacroDiagnostic.noArgument.diagnose(at: attribute))
             return nil
         }
 
-        guard let structDecl = declaration.as(StructDeclSyntax.self) else {
+        guard declaration.as(StructDeclSyntax.self) != nil else {
             context.diagnose(JsonPolymorphicMacroDiagnostic.requiresStructOrClass.diagnose(at: attribute))
             return nil
         }
@@ -227,8 +227,8 @@ fileprivate extension DictionaryExprSyntax {
         }
 
         return elements.reduce(into: [String: String]()) { result, element in
-            guard let key = element.keyExpression.as(StringLiteralExprSyntax.self),
-                  let value = element.valueExpression.as(MemberAccessExprSyntax.self)?.base?.as(DeclReferenceExprSyntax.self)?.baseName.text
+            guard let key = element.key.as(StringLiteralExprSyntax.self),
+                  let value = element.value.as(MemberAccessExprSyntax.self)?.base?.as(DeclReferenceExprSyntax.self)?.baseName.text
             else {
                 return
             }

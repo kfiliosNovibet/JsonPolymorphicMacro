@@ -3,27 +3,16 @@ import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 
-enum StructInitError: CustomStringConvertible, Error {
-    case onlyApplicableToStruct
-    
-    var description: String {
-        switch self {
-        case .onlyApplicableToStruct: return "@StructInit can only be applied to a structure"
-        }
-    }
-}
-
 public struct JsonPolymorphicMacro: MemberMacro {
     public static func expansion<
         Declaration: DeclGroupSyntax, Context: MacroExpansionContext
-    >(
-        of node: AttributeSyntax,
+    >( of node: AttributeSyntax,
         providingMembersOf declaration: Declaration,
         in context: Context
-    ) throws -> [DeclSyntax] {        
+    ) throws -> [DeclSyntax] {
         
         guard let structDecl = declaration.as(StructDeclSyntax.self) else {
-            throw StructInitError.onlyApplicableToStruct
+            return []
         }
         
         let members = structDecl.memberBlock.members
