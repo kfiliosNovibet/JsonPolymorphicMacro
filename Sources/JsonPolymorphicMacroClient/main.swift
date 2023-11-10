@@ -1,9 +1,9 @@
 import JsonPolymorphicMacro
 import Foundation
 
-protocol Response: Decodable {
-    var success: Bool { get }
-}
+//protocol Response: Decodable {
+//    var success: Bool { get }
+//}
 
 struct EmptyResponse: Response {
     let success: Bool}
@@ -43,6 +43,34 @@ struct Test2: Decodable {
     let name: String?
     let a: String?
 }
+
+protocol Response: Decodable {
+}
+
+struct TelephoneResponse: Response {
+    let number: [String]
+}
+
+struct AdressesResponse: Response {
+    let adresses: [Address]
+}
+
+struct Address: Response {
+    let number: String
+    let street: String
+}
+
+
+@JsonPolymorphicKeys([JsonPolymorphicTypeData(key: "type", polyVarName: "content",
+                                              decodableParentType: Response.self,
+                                              decodingTypes: ["Telephones":TelephoneResponse.self,
+                                                              "Adresses":AdressesResponse.self])])
+struct PolyResponse: Decodable {
+    let cities: [String]?
+}
+
+
+
 
 let test = try! JSONDecoder().decode(Test.self, from: "{ \"$type\": \"Single\", \"content\": { \"success\" : true, \"name\" :\"John\"}}".data(using: .utf8)!)
 print("The name is: \((test.content as? SingleResponse)?.name ?? "")")

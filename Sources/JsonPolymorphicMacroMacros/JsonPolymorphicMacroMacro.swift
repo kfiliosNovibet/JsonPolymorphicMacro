@@ -99,14 +99,63 @@ public struct JsonPolymorphicMacro: MemberMacro {
         var initBlock = CodeBlockItemListSyntax()
         initBlock.append(CodeBlockItemSyntax("let values = try decoder.container(keyedBy: CodingKeys.self)"))
         for (name, type) in zip(variablesName, variablesType) {
+            //Here we handle
+            // SimpleValue (Int, String etc)
             var finalType = type.as(IdentifierTypeSyntax.self)?.name.text
-            if (finalType == nil) {
+            // SimpleValue? (Int, String etc)
+            if (finalType == nil && type.as(OptionalTypeSyntax.self) != nil) {
                 finalType = type.as(OptionalTypeSyntax.self)?.wrappedType.as(IdentifierTypeSyntax.self)?.name.text
+                // [SimpleValue]? (Int, String etc)
+                let internalOptionalType = type.as(OptionalTypeSyntax.self)?.wrappedType
+                if (finalType == nil && internalOptionalType?.as(ArrayTypeSyntax.self) != nil) {
+                    var internalType = internalOptionalType?.as(ArrayTypeSyntax.self)!.element.as(IdentifierTypeSyntax.self)?.name.text
+                    if (internalType == nil && internalOptionalType?.as(ArrayTypeSyntax.self)!.element.as(OptionalTypeSyntax.self)?.wrappedType.as(IdentifierTypeSyntax.self) != nil) {
+                        // [SimpleValue?]? (Int, String etc)
+                        internalType = internalOptionalType?.as(ArrayTypeSyntax.self)!.element.as(OptionalTypeSyntax.self)?.wrappedType.as(IdentifierTypeSyntax.self)?.name.text
+                        internalType! += "?"
+                    }
+                    finalType = "[\(internalType!)]"
+                }
+                
+                // [Key: SimpleValue]?
+                if (finalType == nil && internalOptionalType?.as(DictionaryTypeSyntax.self) != nil) {
+                    let keyType = internalOptionalType?.as(DictionaryTypeSyntax.self)?.key.as(IdentifierTypeSyntax.self)?.name.text
+                    var valueType = internalOptionalType?.as(DictionaryTypeSyntax.self)?.value.as(IdentifierTypeSyntax.self)?.name.text
+                    if (valueType == nil && internalOptionalType?.as(DictionaryTypeSyntax.self)?.value.as(OptionalTypeSyntax.self)?.wrappedType.as(IdentifierTypeSyntax.self) != nil) {
+                        // [Key: SimpleValue?]?
+                        valueType = internalOptionalType?.as(DictionaryTypeSyntax.self)?.value.as(OptionalTypeSyntax.self)?.wrappedType.as(IdentifierTypeSyntax.self)?.name.text
+                        valueType! += "?"
+                    }
+                    finalType = "[\(keyType!):\(valueType!)]"
+                }
             }
-            initBlock.append(CodeBlockItemSyntax("self.\(name) =  try values.decodeIfPresent(\(raw: finalType!).self, forKey: .\(raw: name))"))
+            
+            // [SimpleValue] (Int, String etc)
+            if (finalType == nil && type.as(ArrayTypeSyntax.self) != nil) {
+                var internalType = type.as(ArrayTypeSyntax.self)!.element.as(IdentifierTypeSyntax.self)?.name.text
+                if (internalType == nil && type.as(ArrayTypeSyntax.self)!.element.as(OptionalTypeSyntax.self)?.wrappedType.as(IdentifierTypeSyntax.self) != nil) {
+                    // [SimpleValue?] (Int, String etc)
+                    internalType = type.as(ArrayTypeSyntax.self)!.element.as(OptionalTypeSyntax.self)?.wrappedType.as(IdentifierTypeSyntax.self)?.name.text
+                    internalType! += "?"
+                }
+                finalType = "[\(internalType!)]"
+            }
+            
+            // [Key: SimpleValue]
+            if (finalType == nil && type.as(DictionaryTypeSyntax.self) != nil) {
+                let keyType = type.as(DictionaryTypeSyntax.self)?.key.as(IdentifierTypeSyntax.self)?.name.text
+                var valueType = type.as(DictionaryTypeSyntax.self)?.value.as(IdentifierTypeSyntax.self)?.name.text
+                if (valueType == nil && type.as(DictionaryTypeSyntax.self)?.value.as(OptionalTypeSyntax.self)?.wrappedType.as(IdentifierTypeSyntax.self) != nil) {
+                    // [Key: SimpleValue?]
+                    valueType = type.as(DictionaryTypeSyntax.self)?.value.as(OptionalTypeSyntax.self)?.wrappedType.as(IdentifierTypeSyntax.self)?.name.text
+                    valueType! += "?"
+                }
+                finalType = "[\(keyType!):\(valueType!)]"
+            }
+            initBlock.append(CodeBlockItemSyntax("self.\(name) = try values.decodeIfPresent(\(raw: finalType!).self, forKey: .\(raw: name))"))
         }
         //Add any change here to make key deserialize more dynamic
-        initBlock.append(CodeBlockItemSyntax("self.\(raw: polyKeyLocalVariable) =  try values.decodeIfPresent(String.self, forKey: .\(raw:polyKeyLocalVariable))"))
+        initBlock.append(CodeBlockItemSyntax("self.\(raw: polyKeyLocalVariable) = try values.decodeIfPresent(String.self, forKey: .\(raw:polyKeyLocalVariable))"))
         guard let modelTypes = polyMorphicData.first?.value.first?.value else {
             //TODO show error
             return []
