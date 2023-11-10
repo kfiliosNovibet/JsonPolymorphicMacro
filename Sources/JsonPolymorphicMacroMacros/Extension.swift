@@ -173,7 +173,7 @@ public extension JsonPolymorphicMacro {
                 }
                 guard let decodingTypes = decodingTypesArgs.getModelsDict() else {
                         context.diagnose(JsonPolymorphicMacroDiagnostic
-                            .wrongPropertyType(propertyName: "decodingTypes", propertyType: "[String:Decodable.Type] and not empty [:]")
+                            .wrongPropertyType(propertyName: "decodingTypes", propertyType: "[String:Decodable.Type] ")
                             .diagnose(at: polyVarNameArg))
                         return
                 }

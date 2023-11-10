@@ -108,49 +108,23 @@ public struct JsonPolymorphicMacro: MemberMacro {
                 // [SimpleValue]? (Int, String etc)
                 let internalOptionalType = type.as(OptionalTypeSyntax.self)?.wrappedType
                 if (finalType == nil && internalOptionalType?.as(ArrayTypeSyntax.self) != nil) {
-                    var internalType = internalOptionalType?.as(ArrayTypeSyntax.self)!.element.as(IdentifierTypeSyntax.self)?.name.text
-                    if (internalType == nil && internalOptionalType?.as(ArrayTypeSyntax.self)!.element.as(OptionalTypeSyntax.self)?.wrappedType.as(IdentifierTypeSyntax.self) != nil) {
-                        // [SimpleValue?]? (Int, String etc)
-                        internalType = internalOptionalType?.as(ArrayTypeSyntax.self)!.element.as(OptionalTypeSyntax.self)?.wrappedType.as(IdentifierTypeSyntax.self)?.name.text
-                        internalType! += "?"
-                    }
-                    finalType = "[\(internalType!)]"
+                    finalType = handleArray(internalOptionalType!.as(ArrayTypeSyntax.self)!)
                 }
                 
                 // [Key: SimpleValue]?
                 if (finalType == nil && internalOptionalType?.as(DictionaryTypeSyntax.self) != nil) {
-                    let keyType = internalOptionalType?.as(DictionaryTypeSyntax.self)?.key.as(IdentifierTypeSyntax.self)?.name.text
-                    var valueType = internalOptionalType?.as(DictionaryTypeSyntax.self)?.value.as(IdentifierTypeSyntax.self)?.name.text
-                    if (valueType == nil && internalOptionalType?.as(DictionaryTypeSyntax.self)?.value.as(OptionalTypeSyntax.self)?.wrappedType.as(IdentifierTypeSyntax.self) != nil) {
-                        // [Key: SimpleValue?]?
-                        valueType = internalOptionalType?.as(DictionaryTypeSyntax.self)?.value.as(OptionalTypeSyntax.self)?.wrappedType.as(IdentifierTypeSyntax.self)?.name.text
-                        valueType! += "?"
-                    }
-                    finalType = "[\(keyType!):\(valueType!)]"
+                    finalType = handleDict(internalOptionalType?.as(DictionaryTypeSyntax.self))
                 }
             }
             
             // [SimpleValue] (Int, String etc)
             if (finalType == nil && type.as(ArrayTypeSyntax.self) != nil) {
-                var internalType = type.as(ArrayTypeSyntax.self)!.element.as(IdentifierTypeSyntax.self)?.name.text
-                if (internalType == nil && type.as(ArrayTypeSyntax.self)!.element.as(OptionalTypeSyntax.self)?.wrappedType.as(IdentifierTypeSyntax.self) != nil) {
-                    // [SimpleValue?] (Int, String etc)
-                    internalType = type.as(ArrayTypeSyntax.self)!.element.as(OptionalTypeSyntax.self)?.wrappedType.as(IdentifierTypeSyntax.self)?.name.text
-                    internalType! += "?"
-                }
-                finalType = "[\(internalType!)]"
+                finalType = handleArray(type.as(ArrayTypeSyntax.self)!)
             }
             
             // [Key: SimpleValue]
             if (finalType == nil && type.as(DictionaryTypeSyntax.self) != nil) {
-                let keyType = type.as(DictionaryTypeSyntax.self)?.key.as(IdentifierTypeSyntax.self)?.name.text
-                var valueType = type.as(DictionaryTypeSyntax.self)?.value.as(IdentifierTypeSyntax.self)?.name.text
-                if (valueType == nil && type.as(DictionaryTypeSyntax.self)?.value.as(OptionalTypeSyntax.self)?.wrappedType.as(IdentifierTypeSyntax.self) != nil) {
-                    // [Key: SimpleValue?]
-                    valueType = type.as(DictionaryTypeSyntax.self)?.value.as(OptionalTypeSyntax.self)?.wrappedType.as(IdentifierTypeSyntax.self)?.name.text
-                    valueType! += "?"
-                }
-                finalType = "[\(keyType!):\(valueType!)]"
+                finalType = handleDict(type.as(DictionaryTypeSyntax.self))
             }
             initBlock.append(CodeBlockItemSyntax("self.\(name) = try values.decodeIfPresent(\(raw: finalType!).self, forKey: .\(raw: name))"))
         }
@@ -203,6 +177,7 @@ public struct JsonPolymorphicMacro: MemberMacro {
         return SyntaxNodeString(stringLiteral: initialCode)
     }
     
+    
     private static func getProperties(decl: StructDeclSyntax) -> [String] {
         var properties = [String]()
         
@@ -215,6 +190,28 @@ public struct JsonPolymorphicMacro: MemberMacro {
         }
         
         return properties
+    }
+    
+    
+    private static func handleArray(_ arrayTypeSyntax: ArrayTypeSyntax) -> String {
+        var internalType = arrayTypeSyntax.element.as(IdentifierTypeSyntax.self)?.name.text
+        if (internalType == nil && arrayTypeSyntax.element.as(OptionalTypeSyntax.self)?.wrappedType.as(IdentifierTypeSyntax.self) != nil) {
+            // [SimpleValue?]? (Int, String etc)
+            internalType = arrayTypeSyntax.element.as(OptionalTypeSyntax.self)?.wrappedType.as(IdentifierTypeSyntax.self)?.name.text
+            internalType! += "?"
+        }
+        return "[\(internalType!)]"
+    }
+    
+    private static func handleDict(_ dictionaryTypeSyntax: DictionaryTypeSyntax?) -> String {
+        let keyType = dictionaryTypeSyntax?.key.as(IdentifierTypeSyntax.self)?.name.text
+        var valueType = dictionaryTypeSyntax?.value.as(IdentifierTypeSyntax.self)?.name.text
+        if (valueType == nil && dictionaryTypeSyntax?.value.as(OptionalTypeSyntax.self)?.wrappedType.as(IdentifierTypeSyntax.self) != nil) {
+            // [Key: SimpleValue?]?
+            valueType = dictionaryTypeSyntax?.value.as(OptionalTypeSyntax.self)?.wrappedType.as(IdentifierTypeSyntax.self)?.name.text
+            valueType! += "?"
+        }
+        return "[\(keyType!):\(valueType!)]"
     }
 }
 
