@@ -7,7 +7,6 @@ import XCTest
 import JsonPolymorphicMacroMacros
 
 let testMacros: [String: Macro.Type] = [
-    "stringify": StringifyMacro.self,
     "JsonPolymorphicKeys": JsonPolymorphicMacro.self
 ]
 #endif
