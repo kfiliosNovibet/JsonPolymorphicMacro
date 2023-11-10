@@ -13,6 +13,55 @@ let testMacros: [String: Macro.Type] = [
 
 final class JsonPolymorphicMacroTests: XCTestCase {
     
+    func testJsonPolymporphicClass() throws {
+        #if canImport(JsonPolymorphicMacroMacros)
+        assertMacroExpansion(
+            """
+            @JsonPolymorphicKeys([JsonPolymorphicTypeData(key: "type", polyVarName: "content",
+                                                          decodableParentType: Response.self,
+                                                          decodingTypes: ["Telephones":TelephoneResponse.self,
+                                                                          "Adresses":AdressesResponse.self])])
+            final class PolyResponse: Decodable {
+                let cities: [String:String?]?
+            }
+
+            """,
+            expandedSource: """
+            final class PolyResponse: Decodable {
+                let cities: [String:String?]?
+
+                let content: Response?
+
+                let type: String?
+
+                enum CodingKeys: String, CodingKey {
+                    case cities
+                    case type = "type"
+                    case content
+                }
+
+                init(from decoder: Decoder) throws  {
+                    let values = try decoder.container(keyedBy: CodingKeys.self)
+                    self.cities = try values.decodeIfPresent([String: String?].self, forKey: .cities)
+                    self.type = try values.decodeIfPresent(String.self, forKey: .type)
+                    switch self.type {
+                    case "Adresses":
+                        content = try values.decodeIfPresent(AdressesResponse.self, forKey: .content)
+                    case "Telephones":
+                        content = try values.decodeIfPresent(TelephoneResponse.self, forKey: .content)
+                    default:
+                        content = nil
+                    }
+                }
+            }
+            """,
+            macros: testMacros
+        )
+        #else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+        #endif
+    }
+    
     func testJsonPolymporphicDicOptional() throws {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(

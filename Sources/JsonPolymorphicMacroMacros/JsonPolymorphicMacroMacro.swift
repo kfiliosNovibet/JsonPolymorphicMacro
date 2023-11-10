@@ -11,11 +11,18 @@ public struct JsonPolymorphicMacro: MemberMacro {
         in context: Context
     ) throws -> [DeclSyntax] {
         
-        guard let structDecl = declaration.as(StructDeclSyntax.self) else {
+        var membersInst = declaration.as(StructDeclSyntax.self)?.memberBlock.members
+        
+        if membersInst == nil {
+            membersInst = declaration.as(ClassDeclSyntax.self)?.memberBlock.members
+        }
+        guard let members = membersInst else {
+            context.diagnose(JsonPolymorphicMacroDiagnostic
+                .requiresStructOrClass
+                .diagnose(at: node))
             return []
         }
         
-        let members = structDecl.memberBlock.members
         let variableDecl = members.compactMap { $0.decl.as(VariableDeclSyntax.self) }
         let variablesName = variableDecl.compactMap { $0.bindings.first?.pattern }
         let variablesType = variableDecl.compactMap { $0.bindings.first?.typeAnnotation?.type }

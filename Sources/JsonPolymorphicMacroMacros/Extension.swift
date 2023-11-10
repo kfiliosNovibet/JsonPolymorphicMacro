@@ -20,11 +20,7 @@ public extension JsonPolymorphicMacro {
             context.diagnose(JsonPolymorphicMacroDiagnostic.noArgument.diagnose(at: attribute))
             return nil
         }
-
-        guard declaration.as(StructDeclSyntax.self) != nil else {
-            context.diagnose(JsonPolymorphicMacroDiagnostic.requiresStructOrClass.diagnose(at: attribute))
-            return nil
-        }
+        
 //            context.diagnose(CodingKeysMacroDiagnostic.invalidArgument.diagnose(at: attribute))
         if let array = arguments
             .as(LabeledExprListSyntax.self)?
