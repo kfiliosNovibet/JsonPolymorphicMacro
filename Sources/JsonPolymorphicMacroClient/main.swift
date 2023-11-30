@@ -1,6 +1,9 @@
 import JsonPolymorphicMacro
 import Foundation
 
+let  decodeSameLevelSwitch = DecodeSameLevelSwitch()
+decodeSameLevelSwitch.decode()
+
 protocol Response: Decodable {
 }
 

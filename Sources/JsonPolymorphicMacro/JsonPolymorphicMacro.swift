@@ -10,3 +10,6 @@ public macro JsonPolymorphicKeys<T>(_ type: ([String:[String:[String:Decodable.T
 
 @attached(member, names: arbitrary)
 public macro JsonPolymorphicKeys<Decodable>(_ type: ([JsonPolymorphicTypeData<Decodable>])) = #externalMacro(module: "JsonPolymorphicMacroMacros", type: "JsonPolymorphicMacro")
+
+@attached(member, names: arbitrary)
+public macro JsonPolymorphicKeys<Decodable>(_ type: ([JsonPolymorphicSameLevelTypeData<Decodable>])) = #externalMacro(module: "JsonPolymorphicMacroMacros", type: "JsonPolymorphicMacro")

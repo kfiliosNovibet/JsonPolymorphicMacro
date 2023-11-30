@@ -27,9 +27,14 @@ public struct JsonPolymorphicMacro: MemberMacro {
         let variablesName = variableDecl.compactMap { $0.bindings.first?.pattern }
         let variablesType = variableDecl.compactMap { $0.bindings.first?.typeAnnotation?.type }
         
-        guard let (polyMorphicData, dataGenericType) = decodeExpansion(of: node, attachedTo: declaration, in: context) else {
+        guard let (polyMorphicData, dataGenericType, dataType, polyVarParamName) = Utils.decodeExpansion(of: node, attachedTo: declaration, in: context) else {
             return []
         }
+        
+//        if dataType == DataClassTypes.jsonPolymorphicSameLevelTypeData.rawValue {
+//            
+//            return []
+//        }
 //        return []
 //        let properties = getProperties(decl: structDecl)
         
@@ -45,28 +50,42 @@ public struct JsonPolymorphicMacro: MemberMacro {
                                           "WhatElse" : "WhatEverResponse"]]]
             dataGenericType ->  "Response"    
          **/
-        let polymorphicVariableSet = "let \(polymorphicParamData.key): \(dataGenericType)?"
+        // MARK: Params block
+        var polyParamName = polymorphicParamData.key
+        if dataType == DataClassTypes.jsonPolymorphicSameLevelTypeData.rawValue {
+            polyParamName = polyVarParamName
+        }
+        let polymorphicVariableSet = "let \(polyParamName): \(dataGenericType)?"
         var codeBlockGen: [DeclSyntax] = [DeclSyntax(stringLiteral: polymorphicVariableSet)]
         let polyKey = polyMorphicData.first!.key
         let polyKeyLocalVariable = polyKey.first?.isLetter == true ? polyKey : String(polyKey.dropFirst())
-        let jsonPolyKeyVariable = "let \(polyKeyLocalVariable): String?"
-        codeBlockGen.append(DeclSyntax(stringLiteral: jsonPolyKeyVariable))
-        // MARK:  Coding Keys Enum block
+        if dataType != DataClassTypes.jsonPolymorphicSameLevelTypeData.rawValue {
+            let jsonPolyKeyVariable = "let \(polyKeyLocalVariable): String?"
+            codeBlockGen.append(DeclSyntax(stringLiteral: jsonPolyKeyVariable))
+        }
+        
+        // MARK: Coding Keys Enum block
         var parameters = variablesName
                     .map { variable in
                         return  "case \(variable)"
                     }
                     .joined(separator: "\n") 
         parameters.append("\n")
-        parameters.append("case \(polyKeyLocalVariable) = \"\(polyKey)\"")
-        parameters.append("case \(polymorphicParamData.key)")
+        if dataType != DataClassTypes.jsonPolymorphicSameLevelTypeData.rawValue {
+            parameters.append("case \(polyKeyLocalVariable) = \"\(polyKey)\"")
+            parameters.append("case \(polymorphicParamData.key)")
+        }
+        if dataType == DataClassTypes.jsonPolymorphicSameLevelTypeData.rawValue {
+            parameters.append("case \(polyVarParamName) = \"\(polyVarParamName)\"")
+        }
         let enumBlock = """
             enum CodingKeys: String, CodingKey {
                 \(parameters)
             }
             """
         codeBlockGen.append(DeclSyntax(stringLiteral: enumBlock))
-        // MARK:  Init block
+        
+        // MARK: Init block
         var initBlock = CodeBlockItemListSyntax()
         initBlock.append(CodeBlockItemSyntax("let values = try decoder.container(keyedBy: CodingKeys.self)"))
         for (name, type) in zip(variablesName, variablesType) {
@@ -99,8 +118,19 @@ public struct JsonPolymorphicMacro: MemberMacro {
             }
             initBlock.append(CodeBlockItemSyntax("self.\(name) = try values.decodeIfPresent(\(raw: finalType!).self, forKey: .\(raw: name))"))
         }
+        // MARK: Dynamic Block
         //Add any change here to make key deserialize more dynamic
-        initBlock.append(CodeBlockItemSyntax("self.\(raw: polyKeyLocalVariable) = try values.decodeIfPresent(String.self, forKey: .\(raw:polyKeyLocalVariable))"))
+        if dataType != DataClassTypes.jsonPolymorphicSameLevelTypeData.rawValue {
+            initBlock.append(CodeBlockItemSyntax("self.\(raw: polyKeyLocalVariable) = try values.decodeIfPresent(String.self, forKey: .\(raw:polyKeyLocalVariable))"))
+        }
+        if dataType == DataClassTypes.jsonPolymorphicSameLevelTypeData.rawValue {
+            guard let dummyType = polyMorphicData[polyKey]?.keys.first else {
+                return []
+            }
+            initBlock.append(CodeBlockItemSyntax("let dummyModel = try values.decodeIfPresent(\(raw: dummyType).self, forKey: .\(raw:polyVarParamName))"))
+            //                let tempState = try container.decodeIfPresent(DummyBetslipState.self, forKey: .state)
+        }
+        
         guard let modelTypes = polyMorphicData.first?.value.first?.value else {
             //TODO show error
             return []
@@ -109,19 +139,21 @@ public struct JsonPolymorphicMacro: MemberMacro {
         modelTypes.keys.sorted().forEach { key in
             let value = modelTypes[key]!
             let caseBlock = SwitchCaseSyntax("case \"\(raw: key)\":", statementsBuilder: {
-                CodeBlockItemSyntax("\(raw: polymorphicParamData.key) = try values.decodeIfPresent(\(raw: value).self, forKey: .\(raw: polymorphicParamData.key))")
+                CodeBlockItemSyntax("\(raw: polyParamName) = try values.decodeIfPresent(\(raw: value).self, forKey: .\(raw: polyParamName))")
             })
             switchCaseSynt.append(SwitchCaseListSyntax.Element.init(caseBlock))
-            
-//            initBlock.append(CodeBlockItemSyntax("case \(raw: key) :"))
-//            initBlock.append(CodeBlockItemSyntax("  \(raw: polyKeyLocalVariable) = try values.decodeIfPresent(\(raw: value).self, forKey: .\(raw: polyKeyLocalVariable))"))
         }
         let defaultCase = SwitchCaseSyntax("default:", statementsBuilder: {
-            CodeBlockItemSyntax("\(raw: polymorphicParamData.key) = nil")
+            CodeBlockItemSyntax("\(raw: polyParamName) = nil")
         })
         switchCaseSynt.append(SwitchCaseListSyntax.Element.init(defaultCase))
+        var switchCondition = "self.\(polyKeyLocalVariable)"
+        if dataType == DataClassTypes.jsonPolymorphicSameLevelTypeData.rawValue {
+            switchCondition = "dummyModel?.\(polyKeyLocalVariable)"
+        }
+        
         do {
-            let switchSynt = try SwitchExprSyntax.init("switch self.\(raw: polyKeyLocalVariable)", casesBuilder: {switchCaseSynt})
+            let switchSynt = try SwitchExprSyntax.init("switch \(raw: switchCondition)", casesBuilder: {switchCaseSynt})
             initBlock.append(CodeBlockItemSyntax.init(item: .init(switchSynt)))
         } catch let error {
             //TODO throw  error
@@ -184,11 +216,4 @@ public struct JsonPolymorphicMacro: MemberMacro {
         }
         return "[\(keyType!):\(valueType!)]"
     }
-}
-
-@main
-struct JsonPolymorphicMacroPlugin: CompilerPlugin {
-    let providingMacros: [Macro.Type] = [
-        JsonPolymorphicMacro.self,
-    ]
 }
