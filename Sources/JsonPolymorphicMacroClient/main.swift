@@ -4,9 +4,6 @@ import Foundation
 let  decodeSameLevelSwitch = DecodeSameLevelSwitch()
 decodeSameLevelSwitch.decode()
 
-protocol Response: Decodable {
-}
-
 struct EmptyResponse: Response {
     let success: Bool}
 
@@ -46,6 +43,10 @@ struct Test2: Decodable {
     let a: String?
 }
 
+protocol Response: Decodable {
+}
+
+
 struct TelephoneResponse: Response {
     let number: [String]
 }
@@ -57,6 +58,18 @@ struct AdressesResponse: Response {
 struct Address: Response {
     let number: String
     let street: String
+}
+
+@JsonPolymorphicKeys((JsonPolymorphicTypeData(key: "type", polyVarName: "content",
+                                              decodableParentType: Response.self,
+                                              decodingTypes: ["Telephones":TelephoneResponse.self,
+                                                              "Adresses":AdressesResponse.self]),
+                      JsonPolymorphicTypeData(key: "type2", polyVarName: "content2",
+                                                                    decodableParentType: Response.self,
+                                                                    decodingTypes: ["Telephones":TelephoneResponse.self,
+                                                                                    "Adresses":AdressesResponse.self])))
+struct PolyResponse2: Decodable {
+    let cities: [String]?
 }
 
 

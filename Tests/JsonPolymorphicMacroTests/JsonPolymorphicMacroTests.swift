@@ -30,6 +30,8 @@ final class JsonPolymorphicMacroTests: XCTestCase {
             final class PolyResponse: Decodable {
                 let cities: [String:String?]?
 
+            
+            
                 let content: Response?
 
                 let type: String?
@@ -79,6 +81,8 @@ final class JsonPolymorphicMacroTests: XCTestCase {
             struct PolyResponse: Decodable {
                 let cities: [String:String?]?
 
+            
+            
                 let content: Response?
 
                 let type: String?
@@ -128,6 +132,8 @@ final class JsonPolymorphicMacroTests: XCTestCase {
             struct PolyResponse: Decodable {
                 let cities: [String:String]?
 
+            
+            
                 let content: Response?
 
                 let type: String?
@@ -177,6 +183,8 @@ final class JsonPolymorphicMacroTests: XCTestCase {
             struct PolyResponse {
                 let cities: [String]?
 
+            
+            
                 let content: Response?
 
                 let type: String?
@@ -226,6 +234,8 @@ final class JsonPolymorphicMacroTests: XCTestCase {
             struct PolyResponse {
                 let cities: [String?]?
 
+            
+            
                 let content: Response?
 
                 let type: String?
@@ -277,6 +287,8 @@ final class JsonPolymorphicMacroTests: XCTestCase {
                 let name: String?
                 let a: String?
 
+            
+            
                 let content: Response?
 
                 let type: String?
@@ -335,6 +347,8 @@ final class JsonPolymorphicMacroTests: XCTestCase {
                 let name: String?
                 let a: String?
 
+            
+            
                 let content: Response?
 
                 let type: String?
@@ -362,6 +376,76 @@ final class JsonPolymorphicMacroTests: XCTestCase {
                         content = try values.decodeIfPresent(WhatEverResponse.self, forKey: .content)
                     default:
                         content = nil
+                    }
+                }
+            }
+            """,
+            macros: testMacros
+        )
+        #else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+        #endif
+    }
+    
+    func testJsonPolymporphicManyMacroClass() throws {
+        #if canImport(JsonPolymorphicMacroMacros)
+        assertMacroExpansion(
+            """
+            @JsonPolymorphicKeys((JsonPolymorphicTypeData(key: "type", polyVarName: "content",
+                                                          decodableParentType: Response.self,
+                                                          decodingTypes: ["Telephones":TelephoneResponse.self,
+                                                                          "Adresses":AdressesResponse.self]),
+                                  JsonPolymorphicTypeData(key: "type2", polyVarName: "content2",
+                                                                                decodableParentType: Response.self,
+                                                                                decodingTypes: ["Telephones":TelephoneResponse.self,
+                                                                                                "Adresses":AdressesResponse.self])))
+            struct PolyResponse2: Decodable {
+                let cities: [String]?
+            }
+
+            """,
+            expandedSource: """
+            struct PolyResponse2: Decodable {
+                let cities: [String]?
+
+
+
+                let content: Response?
+
+                let type: String?
+
+                let content2: Response?
+
+                let type2: String?
+
+                enum CodingKeys: String, CodingKey {
+                    case cities
+                    case type = "type"
+                    case content
+                    case type2 = "type2"
+                    case content2
+                }
+
+                init(from decoder: Decoder) throws  {
+                    let values = try decoder.container(keyedBy: CodingKeys.self)
+                    self.cities = try values.decodeIfPresent([String].self, forKey: .cities)
+                    self.type = try values.decodeIfPresent(String.self, forKey: .type)
+                    switch self.type {
+                    case "Adresses":
+                        content = try values.decodeIfPresent(AdressesResponse.self, forKey: .content)
+                    case "Telephones":
+                        content = try values.decodeIfPresent(TelephoneResponse.self, forKey: .content)
+                    default:
+                        content = nil
+                    }
+                    self.type2 = try values.decodeIfPresent(String.self, forKey: .type2)
+                    switch self.type2 {
+                    case "Adresses":
+                        content2 = try values.decodeIfPresent(AdressesResponse.self, forKey: .content2)
+                    case "Telephones":
+                        content2 = try values.decodeIfPresent(TelephoneResponse.self, forKey: .content2)
+                    default:
+                        content2 = nil
                     }
                 }
             }
