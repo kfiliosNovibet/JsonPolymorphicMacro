@@ -108,7 +108,6 @@ struct BetslipMultipleSelection: BetslipBaseSelection {}
 struct BetslipStateInputTestMulti: BetslipBaseState {
     let changesDetected: Bool?
     let betContextModes: [BetContextMode]?
-    let combinations: [BetslipCombination]?
     
 }
 

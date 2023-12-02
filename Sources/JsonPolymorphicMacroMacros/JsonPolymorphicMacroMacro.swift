@@ -56,6 +56,7 @@ public struct JsonPolymorphicMacro: MemberMacro {
             dataGenericType ->  "Response"    
          **/
         // MARK: Params block
+        
         var polyParamName = polymorphicParamData.key
         if dataType == DataClassTypes.jsonPolymorphicSameLevelTypeData.rawValue {
             polyParamName = polyVarParamName
@@ -67,13 +68,34 @@ public struct JsonPolymorphicMacro: MemberMacro {
             polyAccessType = "private (set) var"
         }
         let polymorphicVariableSet = "\(polyAccessType) \(polyParamName): \(polyDataType)?"
-        var codeBlockGen: [DeclSyntax] = [DeclSyntax(stringLiteral: polymorphicVariableSet)]
+        var codeBlockGen: [DeclSyntax] = [DeclSyntax(stringLiteral: "")]
+        arrayPolyData.forEach{(polyMorphicData, dataGenericType, dataType, polyVarParamName, isDummyArray) in
+            guard let polymorphicParamData = polyMorphicData.first?.value.first else {
+                //TODO promt here error
+                return
+            }
+            var polyParamName = polymorphicParamData.key
+            if dataType == DataClassTypes.jsonPolymorphicSameLevelTypeData.rawValue {
+                polyParamName = polyVarParamName
+            }
+            var polyDataType = "\(dataGenericType)"
+            var polyAccessType = "let"
+            if isDummyArray {
+                polyDataType = "[\(dataGenericType)]"
+                polyAccessType = "private (set) var"
+            }
+            let polymorphicVariableSet = "\(polyAccessType) \(polyParamName): \(polyDataType)?"
+            codeBlockGen.append(DeclSyntax(stringLiteral: polymorphicVariableSet))
+            let polyKey = polyMorphicData.first!.key
+            let polyKeyLocalVariable = polyKey.first?.isLetter == true ? polyKey : String(polyKey.dropFirst())
+            if dataType != DataClassTypes.jsonPolymorphicSameLevelTypeData.rawValue {
+                let jsonPolyKeyVariable = "let \(polyKeyLocalVariable): String?"
+                codeBlockGen.append(DeclSyntax(stringLiteral: jsonPolyKeyVariable))
+            }
+        }
         let polyKey = polyMorphicData.first!.key
         let polyKeyLocalVariable = polyKey.first?.isLetter == true ? polyKey : String(polyKey.dropFirst())
-        if dataType != DataClassTypes.jsonPolymorphicSameLevelTypeData.rawValue {
-            let jsonPolyKeyVariable = "let \(polyKeyLocalVariable): String?"
-            codeBlockGen.append(DeclSyntax(stringLiteral: jsonPolyKeyVariable))
-        }
+
         
         // MARK: Coding Keys Enum block
         var parameters = variablesName
@@ -81,19 +103,28 @@ public struct JsonPolymorphicMacro: MemberMacro {
                         return  "case \(variable)"
                     }
                     .joined(separator: "\n") 
-        parameters.append("\n")
-        if dataType != DataClassTypes.jsonPolymorphicSameLevelTypeData.rawValue {
-            parameters.append("case \(polyKeyLocalVariable) = \"\(polyKey)\"")
-            parameters.append("case \(polymorphicParamData.key)")
-        }
-        if dataType == DataClassTypes.jsonPolymorphicSameLevelTypeData.rawValue {
-            parameters.append("case \(polyVarParamName) = \"\(polyVarParamName)\"")
+        arrayPolyData.forEach{(polyMorphicData, dataGenericType, dataType, polyVarParamName, isDummyArray) in
+            guard let polymorphicParamData = polyMorphicData.first?.value.first else {
+                //TODO promt here error
+                return
+            }
+            var polyParamName = polymorphicParamData.key
+            let polyKey = polyMorphicData.first!.key
+            let polyKeyLocalVariable = polyKey.first?.isLetter == true ? polyKey : String(polyKey.dropFirst())
+            parameters.append("\n")
+            if dataType != DataClassTypes.jsonPolymorphicSameLevelTypeData.rawValue {
+                parameters.append("case \(polyKeyLocalVariable) = \"\(polyKey)\"")
+                parameters.append("case \(polymorphicParamData.key)")
+            }
+            if dataType == DataClassTypes.jsonPolymorphicSameLevelTypeData.rawValue {
+                parameters.append("case \(polyVarParamName) = \"\(polyVarParamName)\"")
+            }
         }
         let enumBlock = """
-            enum CodingKeys: String, CodingKey {
-                \(parameters)
-            }
-            """
+        enum CodingKeys: String, CodingKey {
+            \(parameters)
+        }
+        """
         codeBlockGen.append(DeclSyntax(stringLiteral: enumBlock))
         
         // MARK: Init block
