@@ -45,7 +45,7 @@ struct BetslipResponse: Decodable {
         case "Empty":
             self.state = try container.decodeIfPresent(BetslipStateEmpty.self, forKey: .state)
         case "Input":
-            self.state = try container.decodeIfPresent(BetslipStateInput.self, forKey: .state)
+            self.state = try container.decodeIfPresent(BetslipStateInputTestMulti.self, forKey: .state)
         default:
             self.state = try container.decodeIfPresent(BetslipStateEmpty.self, forKey: .state)
         }
@@ -59,7 +59,7 @@ struct BetslipResponse: Decodable {
                                                        polyVarName: "state",
                                                        decodableParentType: BetslipBaseState.self,
                                                        decodingTypes: ["Empty":BetslipStateEmpty.self,
-                                                                       "Input":BetslipStateInput.self])))
+                                                                       "Input":BetslipStateInputTestMulti.self])))
 struct BetslipResponseTest: Decodable {
     let id: String?
 }
@@ -87,7 +87,6 @@ struct BetslipSelection: Decodable {}
 struct BetslipCombination: Decodable {}
 struct BetslipSingleCombination: BetslipBaseCombination {}
 struct BetslipMutlipleCombination: BetslipBaseCombination {}
-struct BetslipMultipleCombination: Decodable {}
 struct BetContextMode: Decodable {}
 struct BetslipSingleSelection: BetslipBaseSelection {}
 struct BetslipMultipleSelection: BetslipBaseSelection {}
@@ -103,53 +102,53 @@ struct BetslipMultipleSelection: BetslipBaseSelection {}
                                                        dummyDecoder: [DummyBetslipState].self,
                                                        polyVarName: "combinations",
                                                        decodableParentType: BetslipBaseCombination.self,
-                                                       decodingTypes: ["Selection.Single":BetslipSingleCombination.self,
-                                                                       "Selection.Mutliple":BetslipMultipleCombination.self])))
+                                                       decodingTypes: ["Combination.Single":BetslipSingleCombination.self,
+                                                                       "Combination.Multiple":BetslipMutlipleCombination.self])))
 struct BetslipStateInputTestMulti: BetslipBaseState {
     let changesDetected: Bool?
     let betContextModes: [BetContextMode]?
     
 }
 
-struct BetslipStateInput: BetslipBaseState {
-    var selections: [BetslipBaseSelection]?
-    let combinations: [BetslipCombination]?
-    let changesDetected: Bool?
-    let betContextModes: [BetContextMode]?
-    
-        enum CodingKeys: String, CodingKey {
-            case selections
-            case combinations
-            case changesDetected
-            case betContextModes
-        }
-    
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        
-        let dummyselections = try container.decodeIfPresent([DummyBetslipState].self, forKey: .selections)
-        self.combinations = try container.decodeIfPresent([BetslipCombination].self, forKey: .combinations)
-        self.changesDetected = try container.decodeIfPresent(Bool.self, forKey: .changesDetected)
-        self.betContextModes = try container.decodeIfPresent([BetContextMode].self, forKey: .betContextModes)
- 
-        var selections = [BetslipBaseSelection]()
-        try dummyselections?.forEach({ selection in
-            switch selection.type {
-            case "Selection.Single":
-                var selectionsContainer = try container.nestedUnkeyedContainer(forKey: .selections)
-                let instance = try BetslipSingleSelection.init(from: selectionsContainer.superDecoder())
-                selections.append(instance)
-            case "Selection.Mutliple":
-                var selectionsContainer = try container.nestedUnkeyedContainer(forKey: .selections)
-                let instance = try BetslipSingleSelection.init(from: selectionsContainer.superDecoder())
-                selections.append(instance)
-            default:
-                break
-            }
-        })
-        self.selections = selections
-    }
-}
+//struct BetslipStateInput: BetslipBaseState {
+//    var selections: [BetslipBaseSelection]?
+//    let combinations: [BetslipCombination]?
+//    let changesDetected: Bool?
+//    let betContextModes: [BetContextMode]?
+//    
+//        enum CodingKeys: String, CodingKey {
+//            case selections
+//            case combinations
+//            case changesDetected
+//            case betContextModes
+//        }
+//    
+//    init(from decoder: Decoder) throws {
+//        let container = try decoder.container(keyedBy: CodingKeys.self)
+//        
+//        let dummyselections = try container.decodeIfPresent([DummyBetslipState].self, forKey: .selections)
+//        self.combinations = try container.decodeIfPresent([BetslipCombination].self, forKey: .combinations)
+//        self.changesDetected = try container.decodeIfPresent(Bool.self, forKey: .changesDetected)
+//        self.betContextModes = try container.decodeIfPresent([BetContextMode].self, forKey: .betContextModes)
+// 
+//        var selections = [BetslipBaseSelection]()
+//        try dummyselections?.forEach({ selection in
+//            switch selection.type {
+//            case "Selection.Single":
+//                var selectionsContainer = try container.nestedUnkeyedContainer(forKey: .selections)
+//                let instance = try BetslipSingleSelection.init(from: selectionsContainer.superDecoder())
+//                selections.append(instance)
+//            case "Selection.Mutliple":
+//                var selectionsContainer = try container.nestedUnkeyedContainer(forKey: .selections)
+//                let instance = try BetslipSingleSelection.init(from: selectionsContainer.superDecoder())
+//                selections.append(instance)
+//            default:
+//                break
+//            }
+//        })
+//        self.selections = selections
+//    }
+//}
 
 
 

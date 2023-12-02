@@ -244,7 +244,7 @@ final class Utils {
                         .diagnose(at: item))
                     return
                 }
-                var isArray = dummyDecoderNameArg.isArrayType()
+                let isArray = dummyDecoderNameArg.isArrayType()
                 var dummyDecoderName: String?
                 if (dummyDecoderNameArg.isArrayType()) {
                     guard dummyDecoderNameArg.getElements()?.count == 1 else {
