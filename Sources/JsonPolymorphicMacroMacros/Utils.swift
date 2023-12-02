@@ -15,48 +15,43 @@ enum DataClassTypes: String {
     
 }
 
-typealias PolyData = (data: [String:[String:[String:String]]], decodableParentTypeInst: String, decodableDataType: String, polyVarName: String)
+typealias PolyData = (data: [String:[String:[String:String]]], decodableParentTypeInst: String, decodableDataType: String, polyVarName: String, isDummyArray: Bool)
 
 final class Utils {
     static func decodeExpansion(
         of attribute: AttributeSyntax,
         attachedTo declaration: some DeclGroupSyntax,
         in context: some MacroExpansionContext
-    ) -> PolyData? {
+    ) -> [PolyData]? {
         guard case let .argumentList(arguments) = attribute.arguments
         else {
             context.diagnose(JsonPolymorphicMacroDiagnostic.noArgument.diagnose(at: attribute))
             return nil
         }
+        var isTupleClassed = false
+        guard let args = arguments.as(LabeledExprListSyntax.self)?.first?.expression.as(TupleExprSyntax.self) else { return nil }
+        let className = getClassDataName(of: args, attachedTo: declaration, in: context)
+        switch (className) {
+        case DataClassTypes.jsonPolymorphicTypeData.rawValue, DataClassTypes.jsonPolymorphicSameLevelTypeData.rawValue:
+            isTupleClassed = true
+        default :
+            isTupleClassed = false
+        }
         
-//            context.diagnose(CodingKeysMacroDiagnostic.invalidArgument.diagnose(at: attribute))
-        if let array = arguments
-            .as(LabeledExprListSyntax.self)?
-            .first?.expression
-            .as(ArrayExprSyntax.self) {
-            
-            guard let className = getClassDataName(of: array, attachedTo: declaration, in: context) else {
-                context.diagnose(JsonPolymorphicMacroDiagnostic.invalidArgument.diagnose(at: attribute))
-                return nil
-            }
+        //            context.diagnose(CodingKeysMacroDiagnostic.invalidArgument.diagnose(at: attribute))
+        if  isTupleClassed {
             switch (className) {
             case DataClassTypes.jsonPolymorphicTypeData.rawValue:
-                return handleClass(of: array, attachedTo: declaration, in: context)
+                return handleClass(of: args, attachedTo: declaration, in: context)
             case DataClassTypes.jsonPolymorphicSameLevelTypeData.rawValue:
-                return handleSameLevelClass(of: array, attachedTo: declaration, in: context)
+                return handleSameLevelClass(of: args, attachedTo: declaration, in: context)
             default:
                 context.diagnose(JsonPolymorphicMacroDiagnostic.invalidArgument.diagnose(at: attribute))
                 return nil
             }
            
         }
-        guard let args = attribute.arguments?
-            .as(LabeledExprListSyntax.self)?
-            .first?
-            .expression
-            .as(TupleExprSyntax.self) else {
-            return nil
-        }
+        
         guard let modelType = args.elements.last?
             .as(LabeledExprSyntax.self)?
             .expression
@@ -117,37 +112,37 @@ final class Utils {
             }
             print("==========================")
 //        }
-        return (returnKeysData, modelType, "Dict", "")
+        return [(returnKeysData, modelType, "Dict", "", false)]
     }
     
-    private static func getClassDataName( of attributes: ArrayExprSyntax,
+    private static func getClassDataName( of attributes: TupleExprSyntax,
                                           attachedTo declaration: some DeclGroupSyntax,
                                           in context: some MacroExpansionContext
                                       ) -> String? {
+        
         return attributes
             .elements
             .first?
-            .as(ArrayElementSyntax.self)?
             .expression
             .as(FunctionCallExprSyntax.self)?
-            .calledExpression
-            .as(DeclReferenceExprSyntax.self)?
+            .calledExpression.as(DeclReferenceExprSyntax.self)?
             .baseName
             .text
         
     }
     
-    private static func handleClass (
-            of attributes: ArrayExprSyntax,
+    private static func handleClass(
+            of attributes: TupleExprSyntax,
             attachedTo declaration: some DeclGroupSyntax,
             in context: some MacroExpansionContext
-        ) -> PolyData? {
-            var returnKeysData: [String:[String:[String:String]]] = [:]
-            var decodableParentType: String? = nil
-            var polyVarName: String = ""
+        ) -> [PolyData]? {
+            var returnArray = [PolyData]()
             attributes.elements.forEach { item in
+                var returnKeysData: [String:[String:[String:String]]] = [:]
+                var decodableParentType: String? = nil
+                var polyVarName: String = ""
                 guard (item
-                    .as(ArrayElementSyntax.self)?
+                    .as(LabeledExprSyntax.self)?
                     .expression
                     .as(FunctionCallExprSyntax.self)?
                     .arguments) != nil else {
@@ -155,7 +150,7 @@ final class Utils {
                             .generic(message: "should have a list of JsonPolymorphicSameLevelTypeData as input type" )
                             .diagnose(at: item))
                     return }
-                guard let keyArg = item.as(ArrayElementSyntax.self)?.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "key"}) else {
+                guard let keyArg = item.as(LabeledExprSyntax.self)?.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "key"}) else {
                     context.diagnose(JsonPolymorphicMacroDiagnostic
                         .nonexistentSingleProperty(propertyName: "key")
                         .diagnose(at: item))
@@ -166,7 +161,7 @@ final class Utils {
                         .generic(message: "should have a list of JsonPolymorphicSameLevelTypeData as input type" )
                         .diagnose(at: keyArg))
                     return }
-                guard let polyVarNameArg = item.as(ArrayElementSyntax.self)?.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "polyVarName"}) else {
+                guard let polyVarNameArg = item.as(LabeledExprSyntax.self)?.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "polyVarName"}) else {
                     context.diagnose(JsonPolymorphicMacroDiagnostic
                         .nonexistentSingleProperty(propertyName: "polyVarName")
                         .diagnose(at: item))
@@ -179,7 +174,7 @@ final class Utils {
                     return
                 }
                 polyVarName = polyVarNameInst
-                guard let decodableParentTypeArg = item.as(ArrayElementSyntax.self)?.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "decodableParentType"}) else {
+                guard let decodableParentTypeArg = item.as(LabeledExprSyntax.self)?.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "decodableParentType"}) else {
                     context.diagnose(JsonPolymorphicMacroDiagnostic
                         .nonexistentSingleProperty(propertyName: "decodableParentType")
                         .diagnose(at: item))
@@ -187,7 +182,7 @@ final class Utils {
                 }
                 guard let decodableParentTypeInst = decodableParentTypeArg.getTypeValue() else { return }
                 decodableParentType = decodableParentTypeInst
-                guard let decodingTypesArgs = item.as(ArrayElementSyntax.self)?.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "decodingTypes"})?.expression.as(DictionaryExprSyntax.self) else {
+                guard let decodingTypesArgs = item.as(LabeledExprSyntax.self)?.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "decodingTypes"})?.expression.as(DictionaryExprSyntax.self) else {
                     context.diagnose(JsonPolymorphicMacroDiagnostic
                         .nonexistentSingleProperty(propertyName: "decodingTypes")
                         .diagnose(at: polyVarNameArg))
@@ -203,25 +198,28 @@ final class Utils {
                         context.diagnose(JsonPolymorphicMacroDiagnostic
                             .wrongPropertyType(propertyName: "decodingTypes", propertyType: "[String:Decodable.Type] and not empty [:]")
                             .diagnose(at: polyVarNameArg))
-                        return
-                    }
+                    return
+                }
                 returnKeysData[key] = [polyVarName : decodingTypes]
+                guard let decodableParentTypeInst = decodableParentType else { return }
+                let returnData = (returnKeysData, decodableParentTypeInst, "JsonPolymorphicTypeData", "", false)
+                returnArray.append(returnData)
             }
-            guard let decodableParentTypeInst = decodableParentType else { return nil }
-            return (returnKeysData, decodableParentTypeInst, "JsonPolymorphicTypeData", "")
+            return returnArray
         }
     
-    private static func handleSameLevelClass (
-            of attributes: ArrayExprSyntax,
+    private static func handleSameLevelClass(
+            of attributes: TupleExprSyntax,
             attachedTo declaration: some DeclGroupSyntax,
             in context: some MacroExpansionContext
-        ) -> PolyData? {
-            var returnKeysData: [String:[String:[String:String]]] = [:]
-            var decodableParentType: String? = nil
-            var polyVarName: String = ""
+        ) -> [PolyData]? {
+            var returnArray = [PolyData]()
             attributes.elements.forEach { item in
+                var returnKeysData: [String:[String:[String:String]]] = [:]
+                var decodableParentType: String? = nil
+                var polyVarName: String = ""
                 guard (item
-                    .as(ArrayElementSyntax.self)?
+                    .as(LabeledExprSyntax.self)?
                     .expression
                     .as(FunctionCallExprSyntax.self)?
                     .arguments) != nil else {
@@ -229,7 +227,7 @@ final class Utils {
                             .generic(message: "should have a list of JsonPolymorphicTypeData as input type" )
                             .diagnose(at: item))
                     return }
-                guard let keyArg = item.as(ArrayElementSyntax.self)?.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "key"}) else {
+                guard let keyArg = item.as(LabeledExprSyntax.self)?.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "key"}) else {
                     context.diagnose(JsonPolymorphicMacroDiagnostic
                         .nonexistentSingleProperty(propertyName: "key")
                         .diagnose(at: item))
@@ -240,19 +238,33 @@ final class Utils {
                         .generic(message: "should have a list of JsonPolymorphicTypeData as input type" )
                         .diagnose(at: keyArg))
                     return }
-                guard let dummyDecoderNameArg = item.as(ArrayElementSyntax.self)?.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "dummyDecoder"}) else {
+                guard let dummyDecoderNameArg = item.as(LabeledExprSyntax.self)?.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "dummyDecoder"}) else {
                     context.diagnose(JsonPolymorphicMacroDiagnostic
                         .nonexistentSingleProperty(propertyName: "dummyDecoder")
                         .diagnose(at: item))
                     return
                 }
-                guard let dummyDecoderName = dummyDecoderNameArg.getTypeValue() else {
-                    context.diagnose(JsonPolymorphicMacroDiagnostic
-                        .wrongPropertyType(propertyName: "dummyDecoder", propertyType: "String")
-                        .diagnose(at: dummyDecoderNameArg))
-                    return
+                var isArray = dummyDecoderNameArg.isArrayType()
+                var dummyDecoderName: String?
+                if (dummyDecoderNameArg.isArrayType()) {
+                    guard dummyDecoderNameArg.getElements()?.count == 1 else {
+                        context.diagnose(JsonPolymorphicMacroDiagnostic
+                            .generic(message: "dummyDecoder should have an array but with one type of data [T.self], NOT [T.self, K.self]")
+                            .diagnose(at: dummyDecoderNameArg))
+                        return
+                    }
+                    dummyDecoderName = dummyDecoderNameArg.getElements()?.first?.expression.as(DeclReferenceExprSyntax.self)?.baseName.text
                 }
-                guard let polyVarNameArg = item.as(ArrayElementSyntax.self)?.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "polyVarName"}) else {
+                if dummyDecoderName == nil {
+                    guard let dummyDecoderNameInst = dummyDecoderNameArg.getTypeValue() else {
+                        context.diagnose(JsonPolymorphicMacroDiagnostic
+                            .wrongPropertyType(propertyName: "dummyDecoder", propertyType: "String")
+                            .diagnose(at: dummyDecoderNameArg))
+                        return
+                    }
+                    dummyDecoderName = dummyDecoderNameInst
+                }
+                guard let polyVarNameArg = item.as(LabeledExprSyntax.self)?.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "polyVarName"}) else {
                     context.diagnose(JsonPolymorphicMacroDiagnostic
                         .nonexistentSingleProperty(propertyName: "polyVarName")
                         .diagnose(at: item))
@@ -265,7 +277,7 @@ final class Utils {
                     return
                 }
                 polyVarName = polyVarNameInst
-                guard let decodableParentTypeArg = item.as(ArrayElementSyntax.self)?.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "decodableParentType"}) else {
+                guard let decodableParentTypeArg = item.as(LabeledExprSyntax.self)?.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "decodableParentType"}) else {
                     context.diagnose(JsonPolymorphicMacroDiagnostic
                         .nonexistentSingleProperty(propertyName: "decodableParentType")
                         .diagnose(at: item))
@@ -273,7 +285,7 @@ final class Utils {
                 }
                 guard let decodableParentTypeInst = decodableParentTypeArg.getTypeValue() else { return }
                 decodableParentType = decodableParentTypeInst
-                guard let decodingTypesArgs = item.as(ArrayElementSyntax.self)?.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "decodingTypes"})?.expression.as(DictionaryExprSyntax.self) else {
+                guard let decodingTypesArgs = item.as(LabeledExprSyntax.self)?.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "decodingTypes"})?.expression.as(DictionaryExprSyntax.self) else {
                     context.diagnose(JsonPolymorphicMacroDiagnostic
                         .nonexistentSingleProperty(propertyName: "decodingTypes")
                         .diagnose(at: dummyDecoderNameArg))
@@ -291,10 +303,12 @@ final class Utils {
                             .diagnose(at: dummyDecoderNameArg))
                         return
                     }
-                returnKeysData[key] = [dummyDecoderName : decodingTypes]
+                returnKeysData[key] = [dummyDecoderName! : decodingTypes]
+                guard let decodableParentTypeInst = decodableParentType else { return }
+                let returnData = (returnKeysData, decodableParentTypeInst, "JsonPolymorphicSameLevelTypeData", polyVarName, isArray)
+                returnArray.append(returnData)
             }
-            guard let decodableParentTypeInst = decodableParentType else { return nil }
-            return (returnKeysData, decodableParentTypeInst, "JsonPolymorphicSameLevelTypeData", polyVarName)
+            return returnArray
         }
 }
 
@@ -325,6 +339,14 @@ fileprivate extension LabeledExprSyntax {
     
     func getTypeValue() -> String? {
         return self.expression.as(MemberAccessExprSyntax.self)?.base?.as(DeclReferenceExprSyntax.self)?.baseName.text
+    }
+    
+    func isArrayType() -> Bool {
+        return self.expression.as(MemberAccessExprSyntax.self)?.base?.as(ArrayExprSyntax.self) != nil
+    }
+    
+    func getElements() -> ArrayElementListSyntax? {
+        return self.expression.as(MemberAccessExprSyntax.self)?.base?.as(ArrayExprSyntax.self)?.elements
     }
 }
 

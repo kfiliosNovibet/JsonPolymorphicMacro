@@ -52,7 +52,21 @@ struct BetslipResponse: Decodable {
     }
 }
 
+
+
+@JsonPolymorphicKeys((JsonPolymorphicSameLevelTypeData(key: "$type",
+                                                       dummyDecoder: DummyBetslipState.self,
+                                                       polyVarName: "state",
+                                                       decodableParentType: BetslipBaseState.self,
+                                                       decodingTypes: ["Empty":BetslipStateEmpty.self,
+                                                                       "Input":BetslipStateInput.self])))
+struct BetslipResponseTest: Decodable {
+    let id: String?
+}
+
 protocol BetslipBaseState: Decodable {}
+protocol BetslipBaseSelection: Decodable {}
+protocol BetslipBaseCombination: Decodable {}
 
 struct DummyBetslipState: Decodable {
     let type: String?
@@ -67,28 +81,88 @@ struct DummyBetslipState: Decodable {
     }
 }
 
-struct BetslipStateEmpty: BetslipBaseState {
+struct BetslipStateEmpty: BetslipBaseState {}
+
+struct BetslipSelection: Decodable {}
+struct BetslipCombination: Decodable {}
+struct BetslipSingleCombination: BetslipBaseCombination {}
+struct BetslipMutlipleCombination: BetslipBaseCombination {}
+struct BetslipMultipleCombination: Decodable {}
+struct BetContextMode: Decodable {}
+struct BetslipSingleSelection: BetslipBaseSelection {}
+struct BetslipMultipleSelection: BetslipBaseSelection {}
+
+
+@JsonPolymorphicKeys((JsonPolymorphicSameLevelTypeData(key: "$type",
+                                                       dummyDecoder: [DummyBetslipState].self,
+                                                       polyVarName: "selections",
+                                                       decodableParentType: BetslipBaseSelection.self,
+                                                       decodingTypes: ["Selection.Single":BetslipSingleSelection.self,
+                                                                       "Selection.Mutliple":BetslipMultipleSelection.self]),
+                      JsonPolymorphicSameLevelTypeData(key: "$type",
+                                                       dummyDecoder: [DummyBetslipState].self,
+                                                       polyVarName: "combinations",
+                                                       decodableParentType: BetslipBaseCombination.self,
+                                                       decodingTypes: ["Selection.Single":BetslipSingleCombination.self,
+                                                                       "Selection.Mutliple":BetslipMultipleCombination.self])))
+struct BetslipStateInputTestMulti: BetslipBaseState {
+    let changesDetected: Bool?
+    let betContextModes: [BetContextMode]?
+    let combinations: [BetslipCombination]?
     
 }
 
 struct BetslipStateInput: BetslipBaseState {
-    let selections: [BetslipSelection]?
+    var selections: [BetslipBaseSelection]?
     let combinations: [BetslipCombination]?
     let changesDetected: Bool?
     let betContextModes: [BetContextMode]?
     
+        enum CodingKeys: String, CodingKey {
+            case selections
+            case combinations
+            case changesDetected
+            case betContextModes
+        }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        let dummyselections = try container.decodeIfPresent([DummyBetslipState].self, forKey: .selections)
+        self.combinations = try container.decodeIfPresent([BetslipCombination].self, forKey: .combinations)
+        self.changesDetected = try container.decodeIfPresent(Bool.self, forKey: .changesDetected)
+        self.betContextModes = try container.decodeIfPresent([BetContextMode].self, forKey: .betContextModes)
+ 
+        var selections = [BetslipBaseSelection]()
+        try dummyselections?.forEach({ selection in
+            switch selection.type {
+            case "Selection.Single":
+                var selectionsContainer = try container.nestedUnkeyedContainer(forKey: .selections)
+                let instance = try BetslipSingleSelection.init(from: selectionsContainer.superDecoder())
+                selections.append(instance)
+            case "Selection.Mutliple":
+                var selectionsContainer = try container.nestedUnkeyedContainer(forKey: .selections)
+                let instance = try BetslipSingleSelection.init(from: selectionsContainer.superDecoder())
+                selections.append(instance)
+            default:
+                break
+            }
+        })
+        self.selections = selections
+    }
 }
 
-struct BetslipSelection: Decodable {}
-struct BetslipCombination: Decodable {}
-struct BetContextMode: Decodable {}
 
-@JsonPolymorphicKeys([JsonPolymorphicSameLevelTypeData(key: "$type",
-                                                       dummyDecoder: DummyBetslipState.self,
-                                                       polyVarName: "state",
-                                                       decodableParentType: BetslipBaseState.self,
-                                                       decodingTypes: ["Empty":BetslipStateEmpty.self,
-                                                                       "Input":BetslipStateInput.self])])
-struct BetslipResponseTest: Decodable {
-    let id: String?
+
+@JsonPolymorphicKeys((JsonPolymorphicSameLevelTypeData(key: "$type",
+                                                       dummyDecoder: [DummyBetslipState].self,
+                                                       polyVarName: "selections",
+                                                       decodableParentType: BetslipBaseSelection.self,
+                                                       decodingTypes: ["Selection.Single":BetslipSingleSelection.self,
+                                                                       "Selection.Mutliple":BetslipMultipleSelection.self])))
+struct BetslipStateInputTest: BetslipBaseState {
+    let changesDetected: Bool?
+    let betContextModes: [BetContextMode]?
+    let combinations: [BetslipCombination]?
+    
 }

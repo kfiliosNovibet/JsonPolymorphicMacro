@@ -17,10 +17,10 @@ final class JsonPolymorphicMacroTests: XCTestCase {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
-            @JsonPolymorphicKeys([JsonPolymorphicTypeData(key: "type", polyVarName: "content",
+            @JsonPolymorphicKeys((JsonPolymorphicTypeData(key: "type", polyVarName: "content",
                                                           decodableParentType: Response.self,
                                                           decodingTypes: ["Telephones":TelephoneResponse.self,
-                                                                          "Adresses":AdressesResponse.self])])
+                                                                          "Adresses":AdressesResponse.self])))
             final class PolyResponse: Decodable {
                 let cities: [String:String?]?
             }
@@ -66,10 +66,10 @@ final class JsonPolymorphicMacroTests: XCTestCase {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
-            @JsonPolymorphicKeys([JsonPolymorphicTypeData(key: "type", polyVarName: "content",
+            @JsonPolymorphicKeys((JsonPolymorphicTypeData(key: "type", polyVarName: "content",
                                                           decodableParentType: Response.self,
                                                           decodingTypes: ["Telephones":TelephoneResponse.self,
-                                                                          "Adresses":AdressesResponse.self])])
+                                                                          "Adresses":AdressesResponse.self])))
             struct PolyResponse: Decodable {
                 let cities: [String:String?]?
             }
@@ -115,10 +115,10 @@ final class JsonPolymorphicMacroTests: XCTestCase {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
-            @JsonPolymorphicKeys([JsonPolymorphicTypeData(key: "type", polyVarName: "content",
+            @JsonPolymorphicKeys((JsonPolymorphicTypeData(key: "type", polyVarName: "content",
                                                           decodableParentType: Response.self,
                                                           decodingTypes: ["Telephones":TelephoneResponse.self,
-                                                                          "Adresses":AdressesResponse.self])])
+                                                                          "Adresses":AdressesResponse.self])))
             struct PolyResponse: Decodable {
                 let cities: [String:String]?
             }
@@ -164,10 +164,10 @@ final class JsonPolymorphicMacroTests: XCTestCase {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
-            @JsonPolymorphicKeys([JsonPolymorphicTypeData(key: "type", polyVarName: "content",
+            @JsonPolymorphicKeys((JsonPolymorphicTypeData(key: "type", polyVarName: "content",
                                                           decodableParentType: Response.self,
                                                           decodingTypes: ["Telephones":TelephoneResponse.self,
-                                                                          "Adresses":AdressesResponse.self])])
+                                                                          "Adresses":AdressesResponse.self])))
             struct PolyResponse {
                 let cities: [String]?
             }
@@ -213,10 +213,10 @@ final class JsonPolymorphicMacroTests: XCTestCase {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
-            @JsonPolymorphicKeys([JsonPolymorphicTypeData(key: "type", polyVarName: "content",
+            @JsonPolymorphicKeys((JsonPolymorphicTypeData(key: "type", polyVarName: "content",
                                                           decodableParentType: Response.self,
                                                           decodingTypes: ["Telephones":TelephoneResponse.self,
-                                                                          "Adresses":AdressesResponse.self])])
+                                                                          "Adresses":AdressesResponse.self])))
             struct PolyResponse {
                 let cities: [String?]?
             }
@@ -318,12 +318,12 @@ final class JsonPolymorphicMacroTests: XCTestCase {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
-            @JsonPolymorphicKeys([JsonPolymorphicTypeData(key: "$type", polyVarName: "content",
+            @JsonPolymorphicKeys((JsonPolymorphicTypeData(key: "$type", polyVarName: "content",
                                                                  decodableParentType: Response.self,
                                                                  decodingTypes: ["Empty":EmptyResponse.self,
                                                                                  "Single":SingleResponse.self,
                                                                                  "Many":ListResponse.self,
-                                                                                 "WhatElse":WhatEverResponse.self])])
+                                                                                 "WhatElse":WhatEverResponse.self])))
             struct Test: Decodable {
                 let name: String?
                 let a: String?

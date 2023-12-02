@@ -9,7 +9,10 @@
 public macro JsonPolymorphicKeys<T>(_ type: ([String:[String:[String:Decodable.Type]]], T)) = #externalMacro(module: "JsonPolymorphicMacroMacros", type: "JsonPolymorphicMacro")
 
 @attached(member, names: arbitrary)
-public macro JsonPolymorphicKeys<Decodable>(_ type: ([JsonPolymorphicTypeData<Decodable>])) = #externalMacro(module: "JsonPolymorphicMacroMacros", type: "JsonPolymorphicMacro")
+public macro JsonPolymorphicKeys<Decodable>(_ type: ((JsonPolymorphicTypeData<Decodable>))) = #externalMacro(module: "JsonPolymorphicMacroMacros", type: "JsonPolymorphicMacro")
 
 @attached(member, names: arbitrary)
-public macro JsonPolymorphicKeys<Decodable>(_ type: ([JsonPolymorphicSameLevelTypeData<Decodable>])) = #externalMacro(module: "JsonPolymorphicMacroMacros", type: "JsonPolymorphicMacro")
+public macro JsonPolymorphicKeys<T>(_ type: ((JsonPolymorphicSameLevelTypeData<T>))) = #externalMacro(module: "JsonPolymorphicMacroMacros", type: "JsonPolymorphicMacro")
+
+@attached(member, names: arbitrary)
+public macro JsonPolymorphicKeys<T, K>(_ type: (JsonPolymorphicSameLevelTypeData<T>, JsonPolymorphicSameLevelTypeData<K>)) = #externalMacro(module: "JsonPolymorphicMacroMacros", type: "JsonPolymorphicMacro")
