@@ -174,25 +174,34 @@ public struct JsonPolymorphicMacro: MemberMacro {
             }
             
             if isDummyArray {
+                let nestedContainer = "nestedContainer\(polyParamName)"
                 let polyDataTypeScopeName = "\(polyParamName)Instance"
                 initBlock.append(CodeBlockItemSyntax("var \(raw: polyDataTypeScopeName): \(raw: polyDataType) = []"))
-                initBlock.append(CodeBlockItemSyntax("try \(raw: dummyInstanceName)?.forEach({ item in "))
-                
+                initBlock.append(CodeBlockItemSyntax("var \(raw: nestedContainer) = try values.nestedUnkeyedContainer(forKey: .\(raw: polyParamName))"))
+                initBlock.append(CodeBlockItemSyntax("while !\(raw: nestedContainer).isAtEnd {"))
+                initBlock.append(CodeBlockItemSyntax("let dummyItem = \(raw: dummyInstanceName)?[\(raw: nestedContainer).currentIndex]"))
+
                 var switchCaseSynt = SwitchCaseListSyntax()
+
                 modelTypes.keys.sorted().forEach { key in
                     let value = modelTypes[key]!
                     let caseBlock = SwitchCaseSyntax("case \"\(raw: key)\":", statementsBuilder: {
-                        CodeBlockItemSyntax("var selectionsContainer = try values.nestedUnkeyedContainer(forKey: .\(raw: polyParamName))")
-                        CodeBlockItemSyntax("let instance = try \(raw: value).init(from: selectionsContainer.superDecoder())")
+                        CodeBlockItemSyntax("if let instance = try? \(raw: nestedContainer).decode(\(raw: value).self) {")
                         CodeBlockItemSyntax("\(raw: polyDataTypeScopeName).append(instance)")
+                        CodeBlockItemSyntax("}")
                     })
                     switchCaseSynt.append(SwitchCaseListSyntax.Element.init(caseBlock))
                 }
+                guard let dummyType = polyMorphicData[polyKey]?.keys.first else {
+                    return
+                }
+
                 let defaultCase = SwitchCaseSyntax("default:", statementsBuilder: {
+                    CodeBlockItemSyntax("_ = try? \(raw: nestedContainer).decode(\(raw: dummyType).self)")
                     CodeBlockItemSyntax("\(raw: polyParamName) = nil")
                 })
                 switchCaseSynt.append(SwitchCaseListSyntax.Element.init(defaultCase))
-                let switchCondition = "item.\(polyKeyLocalVariable)"
+                let switchCondition = "dummyItem?.\(polyKeyLocalVariable)"
                 do {
                     let switchSynt = try SwitchExprSyntax.init("switch \(raw: switchCondition)", casesBuilder: {switchCaseSynt})
                     initBlock.append(CodeBlockItemSyntax.init(item: .init(switchSynt)))
@@ -201,7 +210,7 @@ public struct JsonPolymorphicMacro: MemberMacro {
                     throw error
                 }
                 
-                initBlock.append(CodeBlockItemSyntax("})"))
+                initBlock.append(CodeBlockItemSyntax("}"))
                 initBlock.append(CodeBlockItemSyntax("self.\(raw: polyParamName) = \(raw: polyDataTypeScopeName)"))
                 
             } else {
