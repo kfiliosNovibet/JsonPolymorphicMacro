@@ -130,30 +130,6 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
-            protocol BetslipBaseState: Decodable {}
-            protocol BetslipBaseSelection: Decodable {}
-
-            struct DummyBetslipState: Decodable {
-                let type: String?
-                
-                enum CodingKeys: String, CodingKey {
-                    case type = "$type"
-                }
-                
-                init(from decoder: Decoder) throws {
-                    let container = try decoder.container(keyedBy: CodingKeys.self)
-                    self.type = try container.decodeIfPresent(String.self, forKey: .type)
-                }
-            }
-
-            struct BetslipStateEmpty: BetslipBaseState {}
-
-            struct BetslipSelection: Decodable {}
-            struct BetslipCombination: Decodable {}
-            struct BetContextMode: Decodable {}
-            struct BetslipSingleSelection: BetslipBaseSelection {}
-            struct BetslipMultipleSelection: BetslipBaseSelection {}
-
             @JsonPolymorphicKeys((JsonPolymorphicSameLevelTypeData(key: "$type",
                                                                    dummyDecoder: [DummyBetslipState].self,
                                                                    polyVarName: "selections",
@@ -168,29 +144,6 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
             }
             """,
             expandedSource: """
-            protocol BetslipBaseState: Decodable {}
-            protocol BetslipBaseSelection: Decodable {}
-
-            struct DummyBetslipState: Decodable {
-                let type: String?
-                
-                enum CodingKeys: String, CodingKey {
-                    case type = "$type"
-                }
-                
-                init(from decoder: Decoder) throws {
-                    let container = try decoder.container(keyedBy: CodingKeys.self)
-                    self.type = try container.decodeIfPresent(String.self, forKey: .type)
-                }
-            }
-
-            struct BetslipStateEmpty: BetslipBaseState {}
-
-            struct BetslipSelection: Decodable {}
-            struct BetslipCombination: Decodable {}
-            struct BetContextMode: Decodable {}
-            struct BetslipSingleSelection: BetslipBaseSelection {}
-            struct BetslipMultipleSelection: BetslipBaseSelection {}
             struct BetslipStateInputTest: BetslipBaseState {
                 let changesDetected: Bool?
                 let betContextModes: [BetContextMode]?
@@ -214,19 +167,20 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
                     self.combinations = try values.decodeIfPresent([BetslipCombination].self, forKey: .combinations)
                     let dummyModelselections = try values.decodeIfPresent([DummyBetslipState].self, forKey: .selections)
                     var selectionsInstance: [BetslipBaseState] = []
-                    try dummyModelselections?.forEach({ item in
-                    switch item.type {
+                    var nestedContainerselections = try values.nestedUnkeyedContainer(forKey: .selections)
+                    while !nestedContainerselections.isAtEnd {
+                    let dummyItem = dummyModelselections? [nestedContainerselections.currentIndex]
+                    switch dummyItem?.type {
                     case "Selection.Mutliple":
-                        var selectionsContainer = try values.nestedUnkeyedContainer(forKey: .selections)
-                        let instance = try BetslipMultipleSelection.init(from: selectionsContainer.superDecoder())
-                        selectionsInstance.append(instance)
+                        if let instance = try? nestedContainerselections.decode(BetslipMultipleSelection.self) {
+                        selectionsInstance.append(instance)}
                     case "Selection.Single":
-                        var selectionsContainer = try values.nestedUnkeyedContainer(forKey: .selections)
-                        let instance = try BetslipSingleSelection.init(from: selectionsContainer.superDecoder())
-                        selectionsInstance.append(instance)
+                        if let instance = try? nestedContainerselections.decode(BetslipSingleSelection.self) {
+                        selectionsInstance.append(instance)}
                     default:
+                        _ = try? nestedContainerselections.decode(DummyBetslipState.self)
                         selections = nil
-                    }})
+                    }}
                     self.selections = selectionsInstance
                 }
                 
@@ -243,35 +197,6 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
-            protocol BetslipBaseState: Decodable {}
-            protocol BetslipBaseSelection: Decodable {}
-            protocol BetslipBaseCombination: Decodable {}
-
-            struct DummyBetslipState: Decodable {
-                let type: String?
-                
-                enum CodingKeys: String, CodingKey {
-                    case type = "$type"
-                }
-                
-                init(from decoder: Decoder) throws {
-                    let container = try decoder.container(keyedBy: CodingKeys.self)
-                    self.type = try container.decodeIfPresent(String.self, forKey: .type)
-                }
-            }
-
-            struct BetslipStateEmpty: BetslipBaseState {}
-
-            struct BetslipSelection: Decodable {}
-            struct BetslipCombination: Decodable {}
-            struct BetslipSingleCombination: BetslipBaseCombination {}
-            struct BetslipMutlipleCombination: BetslipBaseCombination {}
-            struct BetslipMultipleCombination: Decodable {}
-            struct BetContextMode: Decodable {}
-            struct BetslipSingleSelection: BetslipBaseSelection {}
-            struct BetslipMultipleSelection: BetslipBaseSelection {}
-
-
             @JsonPolymorphicKeys((JsonPolymorphicSameLevelTypeData(key: "$type",
                                                                    dummyDecoder: [DummyBetslipState].self,
                                                                    polyVarName: "selections",
@@ -291,33 +216,6 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
             }
             """,
             expandedSource: """
-            protocol BetslipBaseState: Decodable {}
-            protocol BetslipBaseSelection: Decodable {}
-            protocol BetslipBaseCombination: Decodable {}
-
-            struct DummyBetslipState: Decodable {
-                let type: String?
-                
-                enum CodingKeys: String, CodingKey {
-                    case type = "$type"
-                }
-                
-                init(from decoder: Decoder) throws {
-                    let container = try decoder.container(keyedBy: CodingKeys.self)
-                    self.type = try container.decodeIfPresent(String.self, forKey: .type)
-                }
-            }
-
-            struct BetslipStateEmpty: BetslipBaseState {}
-
-            struct BetslipSelection: Decodable {}
-            struct BetslipCombination: Decodable {}
-            struct BetslipSingleCombination: BetslipBaseCombination {}
-            struct BetslipMutlipleCombination: BetslipBaseCombination {}
-            struct BetslipMultipleCombination: Decodable {}
-            struct BetContextMode: Decodable {}
-            struct BetslipSingleSelection: BetslipBaseSelection {}
-            struct BetslipMultipleSelection: BetslipBaseSelection {}
             struct BetslipStateInputTestMulti: BetslipBaseState {
                 let changesDetected: Bool?
                 let betContextModes: [BetContextMode]?
@@ -341,35 +239,37 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
                     self.betContextModes = try values.decodeIfPresent([BetContextMode].self, forKey: .betContextModes)
                     let dummyModelselections = try values.decodeIfPresent([DummyBetslipState].self, forKey: .selections)
                     var selectionsInstance: [BetslipBaseSelection] = []
-                    try dummyModelselections?.forEach({ item in
-                    switch item.type {
+                    var nestedContainerselections = try values.nestedUnkeyedContainer(forKey: .selections)
+                    while !nestedContainerselections.isAtEnd {
+                    let dummyItem = dummyModelselections? [nestedContainerselections.currentIndex]
+                    switch dummyItem?.type {
                     case "Selection.Mutliple":
-                        var selectionsContainer = try values.nestedUnkeyedContainer(forKey: .selections)
-                        let instance = try BetslipMultipleSelection.init(from: selectionsContainer.superDecoder())
-                        selectionsInstance.append(instance)
+                        if let instance = try? nestedContainerselections.decode(BetslipMultipleSelection.self) {
+                        selectionsInstance.append(instance)}
                     case "Selection.Single":
-                        var selectionsContainer = try values.nestedUnkeyedContainer(forKey: .selections)
-                        let instance = try BetslipSingleSelection.init(from: selectionsContainer.superDecoder())
-                        selectionsInstance.append(instance)
+                        if let instance = try? nestedContainerselections.decode(BetslipSingleSelection.self) {
+                        selectionsInstance.append(instance)}
                     default:
+                        _ = try? nestedContainerselections.decode(DummyBetslipState.self)
                         selections = nil
-                    }})
+                    }}
                     self.selections = selectionsInstance
                     let dummyModelcombinations = try values.decodeIfPresent([DummyBetslipState].self, forKey: .combinations)
                     var combinationsInstance: [BetslipBaseCombination] = []
-                    try dummyModelcombinations?.forEach({ item in
-                    switch item.type {
+                    var nestedContainercombinations = try values.nestedUnkeyedContainer(forKey: .combinations)
+                    while !nestedContainercombinations.isAtEnd {
+                    let dummyItem = dummyModelcombinations? [nestedContainercombinations.currentIndex]
+                    switch dummyItem?.type {
                     case "Selection.Mutliple":
-                        var selectionsContainer = try values.nestedUnkeyedContainer(forKey: .combinations)
-                        let instance = try BetslipMultipleCombination.init(from: selectionsContainer.superDecoder())
-                        combinationsInstance.append(instance)
+                        if let instance = try? nestedContainercombinations.decode(BetslipMultipleCombination.self) {
+                        combinationsInstance.append(instance)}
                     case "Selection.Single":
-                        var selectionsContainer = try values.nestedUnkeyedContainer(forKey: .combinations)
-                        let instance = try BetslipSingleCombination.init(from: selectionsContainer.superDecoder())
-                        combinationsInstance.append(instance)
+                        if let instance = try? nestedContainercombinations.decode(BetslipSingleCombination.self) {
+                        combinationsInstance.append(instance)}
                     default:
+                        _ = try? nestedContainercombinations.decode(DummyBetslipState.self)
                         combinations = nil
-                    }})
+                    }}
                     self.combinations = combinationsInstance
                 }
                 
@@ -386,35 +286,6 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
-            protocol BetslipBaseState: Decodable {}
-            protocol BetslipBaseSelection: Decodable {}
-            protocol BetslipBaseCombination: Decodable {}
-
-            struct DummyBetslipState: Decodable {
-                let type: String?
-                
-                enum CodingKeys: String, CodingKey {
-                    case type = "$type"
-                }
-                
-                init(from decoder: Decoder) throws {
-                    let container = try decoder.container(keyedBy: CodingKeys.self)
-                    self.type = try container.decodeIfPresent(String.self, forKey: .type)
-                }
-            }
-
-            struct BetslipStateEmpty: BetslipBaseState {}
-
-            struct BetslipSelection: Decodable {}
-            struct BetslipCombination: Decodable {}
-            struct BetslipSingleCombination: BetslipBaseCombination {}
-            struct BetslipMutlipleCombination: BetslipBaseCombination {}
-            struct BetslipMultipleCombination: Decodable {}
-            struct BetContextMode: Decodable {}
-            struct BetslipSingleSelection: BetslipBaseSelection {}
-            struct BetslipMultipleSelection: BetslipBaseSelection {}
-
-
             @JsonPolymorphicKeys((JsonPolymorphicSameLevelTypeData(key: "$type",
                                                                    dummyDecoder: DummyBetslipState.self,
                                                                    polyVarName: "selections",
@@ -434,33 +305,6 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
             }
             """,
             expandedSource: """
-            protocol BetslipBaseState: Decodable {}
-            protocol BetslipBaseSelection: Decodable {}
-            protocol BetslipBaseCombination: Decodable {}
-
-            struct DummyBetslipState: Decodable {
-                let type: String?
-                
-                enum CodingKeys: String, CodingKey {
-                    case type = "$type"
-                }
-                
-                init(from decoder: Decoder) throws {
-                    let container = try decoder.container(keyedBy: CodingKeys.self)
-                    self.type = try container.decodeIfPresent(String.self, forKey: .type)
-                }
-            }
-
-            struct BetslipStateEmpty: BetslipBaseState {}
-
-            struct BetslipSelection: Decodable {}
-            struct BetslipCombination: Decodable {}
-            struct BetslipSingleCombination: BetslipBaseCombination {}
-            struct BetslipMutlipleCombination: BetslipBaseCombination {}
-            struct BetslipMultipleCombination: Decodable {}
-            struct BetContextMode: Decodable {}
-            struct BetslipSingleSelection: BetslipBaseSelection {}
-            struct BetslipMultipleSelection: BetslipBaseSelection {}
             struct BetslipStateInputTestMulti: BetslipBaseState {
                 let changesDetected: Bool?
                 let betContextModes: [BetContextMode]?
@@ -493,20 +337,173 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
                     }
                     let dummyModelcombinations = try values.decodeIfPresent([DummyBetslipState].self, forKey: .combinations)
                     var combinationsInstance: [BetslipBaseCombination] = []
-                    try dummyModelcombinations?.forEach({ item in
-                    switch item.type {
+                    var nestedContainercombinations = try values.nestedUnkeyedContainer(forKey: .combinations)
+                    while !nestedContainercombinations.isAtEnd {
+                    let dummyItem = dummyModelcombinations? [nestedContainercombinations.currentIndex]
+                    switch dummyItem?.type {
                     case "Selection.Mutliple":
-                        var selectionsContainer = try values.nestedUnkeyedContainer(forKey: .combinations)
-                        let instance = try BetslipMultipleCombination.init(from: selectionsContainer.superDecoder())
-                        combinationsInstance.append(instance)
+                        if let instance = try? nestedContainercombinations.decode(BetslipMultipleCombination.self) {
+                        combinationsInstance.append(instance)}
                     case "Selection.Single":
-                        var selectionsContainer = try values.nestedUnkeyedContainer(forKey: .combinations)
-                        let instance = try BetslipSingleCombination.init(from: selectionsContainer.superDecoder())
-                        combinationsInstance.append(instance)
+                        if let instance = try? nestedContainercombinations.decode(BetslipSingleCombination.self) {
+                        combinationsInstance.append(instance)}
                     default:
+                        _ = try? nestedContainercombinations.decode(DummyBetslipState.self)
                         combinations = nil
-                    }})
+                    }}
                     self.combinations = combinationsInstance
+                }
+                
+            }
+            """,
+            macros: testSameLevelMacros
+        )
+        #else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+        #endif
+    }
+    
+    func testJsonPolymporphicArrayClassSingleExtraKey() throws {
+        #if canImport(JsonPolymorphicMacroMacros)
+        assertMacroExpansion(
+            """
+            @JsonPolymorphicKeys((JsonPolymorphicSameLevelTypeData(key: "$type",
+                                                                   dummyDecoder: [DummyBetslipState].self,
+                                                                   polyVarName: "selections",
+                                                                   decodableParentType: BetslipBaseSelection.self,
+                                                                   decodingTypes: ["Selection.Single":BetslipSingleSelection.self,
+                                                                                   "Selection.Mutliple":BetslipMultipleSelection.self],
+                                                                   extraCustomCodingKeys: [ExtraCustomCodingKeys(paramName: "type", paramCodingKey:"$type", type: String.self)])))
+            struct BetslipStateInputTest: BetslipBaseState {
+                let changesDetected: Bool?
+                let betContextModes: [BetContextMode]?
+                let combinations: [BetslipCombination]?
+                
+            }
+            """,
+            expandedSource: """
+            struct BetslipStateInputTest: BetslipBaseState {
+                let changesDetected: Bool?
+                let betContextModes: [BetContextMode]?
+                let combinations: [BetslipCombination]?
+
+
+
+                private (set) var selections: [BetslipBaseSelection]?
+
+                let type: String?
+
+                enum CodingKeys: String, CodingKey {
+                    case changesDetected
+                    case betContextModes
+                    case combinations
+                    case selections = "selections"
+                    case type = "$type"
+                }
+
+                init(from decoder: Decoder) throws  {
+                    let values = try decoder.container(keyedBy: CodingKeys.self)
+                    self.changesDetected = try values.decodeIfPresent(Bool.self, forKey: .changesDetected)
+                    self.betContextModes = try values.decodeIfPresent([BetContextMode].self, forKey: .betContextModes)
+                    self.combinations = try values.decodeIfPresent([BetslipCombination].self, forKey: .combinations)
+                    self.type = try values.decodeIfPresent(String.self, forKey: .type)
+                    let dummyModelselections = try values.decodeIfPresent([DummyBetslipState].self, forKey: .selections)
+                    var selectionsInstance: [BetslipBaseSelection] = []
+                    var nestedContainerselections = try values.nestedUnkeyedContainer(forKey: .selections)
+                    while !nestedContainerselections.isAtEnd {
+                    let dummyItem = dummyModelselections? [nestedContainerselections.currentIndex]
+                    switch dummyItem?.type {
+                    case "Selection.Mutliple":
+                        if let instance = try? nestedContainerselections.decode(BetslipMultipleSelection.self) {
+                        selectionsInstance.append(instance)}
+                    case "Selection.Single":
+                        if let instance = try? nestedContainerselections.decode(BetslipSingleSelection.self) {
+                        selectionsInstance.append(instance)}
+                    default:
+                        _ = try? nestedContainerselections.decode(DummyBetslipState.self)
+                        selections = nil
+                    }}
+                    self.selections = selectionsInstance
+                }
+                
+            }
+            """,
+            macros: testSameLevelMacros
+        )
+        #else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+        #endif
+    }
+    
+    func testJsonPolymporphicArrayClassManyExtraKeys() throws {
+        #if canImport(JsonPolymorphicMacroMacros)
+        assertMacroExpansion(
+            """
+            @JsonPolymorphicKeys((JsonPolymorphicSameLevelTypeData(key: "$type",
+                                                                   dummyDecoder: [DummyBetslipState].self,
+                                                                   polyVarName: "selections",
+                                                                   decodableParentType: BetslipBaseSelection.self,
+                                                                   decodingTypes: ["Selection.Single":BetslipSingleSelection.self,
+                                                                                   "Selection.Mutliple":BetslipMultipleSelection.self],
+                                                                   extraCustomCodingKeys: [ExtraCustomCodingKeys(paramName: "type", paramCodingKey:"$type", type: String.self), ExtraCustomCodingKeys(paramName: "newType", paramCodingKey:"$newType", type: String.self), ExtraCustomCodingKeys(paramName: "oldType", paramCodingKey:"$oldType", type: String.self)]))
+            struct BetslipStateInputTest: BetslipBaseState {
+                let changesDetected: Bool?
+                let betContextModes: [BetContextMode]?
+                let combinations: [BetslipCombination]?
+                
+            }
+            """,
+            expandedSource: """
+            struct BetslipStateInputTest: BetslipBaseState {
+                let changesDetected: Bool?
+                let betContextModes: [BetContextMode]?
+                let combinations: [BetslipCombination]?
+
+
+
+                private (set) var selections: [BetslipBaseSelection]?
+
+                let type: String?
+
+                let newType: String?
+
+                let oldType: String?
+
+                enum CodingKeys: String, CodingKey {
+                    case changesDetected
+                    case betContextModes
+                    case combinations
+                    case selections = "selections"
+                    case type = "$type"
+                    case newType = "$newType"
+                    case oldType = "$oldType"
+                }
+
+                init(from decoder: Decoder) throws  {
+                    let values = try decoder.container(keyedBy: CodingKeys.self)
+                    self.changesDetected = try values.decodeIfPresent(Bool.self, forKey: .changesDetected)
+                    self.betContextModes = try values.decodeIfPresent([BetContextMode].self, forKey: .betContextModes)
+                    self.combinations = try values.decodeIfPresent([BetslipCombination].self, forKey: .combinations)
+                    self.type = try values.decodeIfPresent(String.self, forKey: .type)
+                    self.newType = try values.decodeIfPresent(String.self, forKey: .newType)
+                    self.oldType = try values.decodeIfPresent(String.self, forKey: .oldType)
+                    let dummyModelselections = try values.decodeIfPresent([DummyBetslipState].self, forKey: .selections)
+                    var selectionsInstance: [BetslipBaseSelection] = []
+                    var nestedContainerselections = try values.nestedUnkeyedContainer(forKey: .selections)
+                    while !nestedContainerselections.isAtEnd {
+                    let dummyItem = dummyModelselections? [nestedContainerselections.currentIndex]
+                    switch dummyItem?.type {
+                    case "Selection.Mutliple":
+                        if let instance = try? nestedContainerselections.decode(BetslipMultipleSelection.self) {
+                        selectionsInstance.append(instance)}
+                    case "Selection.Single":
+                        if let instance = try? nestedContainerselections.decode(BetslipSingleSelection.self) {
+                        selectionsInstance.append(instance)}
+                    default:
+                        _ = try? nestedContainerselections.decode(DummyBetslipState.self)
+                        selections = nil
+                    }}
+                    self.selections = selectionsInstance
                 }
                 
             }

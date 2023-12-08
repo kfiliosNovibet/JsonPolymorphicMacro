@@ -97,13 +97,17 @@ struct BetslipMultipleSelection: BetslipBaseSelection {}
                                                        polyVarName: "selections",
                                                        decodableParentType: BetslipBaseSelection.self,
                                                        decodingTypes: ["Selection.Single":BetslipSingleSelection.self,
-                                                                       "Selection.Mutliple":BetslipMultipleSelection.self]),
+                                                                       "Selection.Mutliple":BetslipMultipleSelection.self],
+                                                       extraCustomCodingKeys: [ExtraCustomCodingKey( paramName: "type", paramCodingKey:"$type", type: String.self),
+                                                                               ExtraCustomCodingKey( paramName: "kostas", paramCodingKey:"$hey", type: Int.self)]),
                       JsonPolymorphicSameLevelTypeData(key: "$type",
                                                        dummyDecoder: [DummyBetslipState].self,
                                                        polyVarName: "combinations",
                                                        decodableParentType: BetslipBaseCombination.self,
                                                        decodingTypes: ["Combination.Single":BetslipSingleCombination.self,
-                                                                       "Combination.Multiple":BetslipMutlipleCombination.self])))
+                                                                       "Combination.Multiple":BetslipMutlipleCombination.self],
+                                                       extraCustomCodingKeys: [ExtraCustomCodingKey( paramName: "type1", paramCodingKey:"$type1", type: String.self),
+                                                                               ExtraCustomCodingKey( paramName: "kostas2", paramCodingKey:"$hey1", type: Int.self)])))
 struct BetslipStateInputTestMulti: BetslipBaseState {
     let changesDetected: Bool?
     let betContextModes: [BetContextMode]?
@@ -157,7 +161,9 @@ struct BetslipStateInputTestMulti: BetslipBaseState {
                                                        polyVarName: "selections",
                                                        decodableParentType: BetslipBaseSelection.self,
                                                        decodingTypes: ["Selection.Single":BetslipSingleSelection.self,
-                                                                       "Selection.Mutliple":BetslipMultipleSelection.self])))
+                                                                       "Selection.Mutliple":BetslipMultipleSelection.self],
+                                                       extraCustomCodingKeys: [ExtraCustomCodingKey( paramName: "type", paramCodingKey:"$type", type: String.self),
+                                                                               ExtraCustomCodingKey( paramName: "kostas", paramCodingKey:"$hey", type: Int.self)])))
 struct BetslipStateInputTest: BetslipBaseState {
     let changesDetected: Bool?
     let betContextModes: [BetContextMode]?

@@ -15,7 +15,10 @@ enum DataClassTypes: String {
     
 }
 
-typealias PolyData = (data: [String:[String:[String:String]]], decodableParentTypeInst: String, decodableDataType: String, polyVarName: String, isDummyArray: Bool)
+public typealias ExtraCustomCodingKeys = (paramName: String, paramCodingKey: String, type: String)
+
+typealias PolyData = (data: [String:[String:[String:String]]], decodableParentTypeInst: String, 
+                      decodableDataType: String, polyVarName: String, isDummyArray: Bool, extraCodingKeys: [ExtraCustomCodingKeys])
 
 final class Utils {
     static func decodeExpansion(
@@ -112,7 +115,7 @@ final class Utils {
             }
             print("==========================")
 //        }
-        return [(returnKeysData, modelType, "Dict", "", false)]
+        return [(returnKeysData, modelType, "Dict", "", false, [])]
     }
     
     private static func getClassDataName( of attributes: TupleExprSyntax,
@@ -202,7 +205,9 @@ final class Utils {
                 }
                 returnKeysData[key] = [polyVarName : decodingTypes]
                 guard let decodableParentTypeInst = decodableParentType else { return }
-                let returnData = (returnKeysData, decodableParentTypeInst, "JsonPolymorphicTypeData", "", false)
+                let extraCodingKeysArg = item.as(LabeledExprSyntax.self)?.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "extraCustomCodingKeys"})
+                let extraCodingKeys = extraCodingKeysArg?.getExtraCodingKeys() ?? [ExtraCustomCodingKeys]()
+                let returnData = (returnKeysData, decodableParentTypeInst, "JsonPolymorphicTypeData", "", false, extraCodingKeys)
                 returnArray.append(returnData)
             }
             return returnArray
@@ -305,7 +310,9 @@ final class Utils {
                     }
                 returnKeysData[key] = [dummyDecoderName! : decodingTypes]
                 guard let decodableParentTypeInst = decodableParentType else { return }
-                let returnData = (returnKeysData, decodableParentTypeInst, "JsonPolymorphicSameLevelTypeData", polyVarName, isArray)
+                let extraCodingKeysArg = item.as(LabeledExprSyntax.self)?.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "extraCustomCodingKeys"})
+                let extraCodingKeys = extraCodingKeysArg?.getExtraCodingKeys() ?? [ExtraCustomCodingKeys]()
+                let returnData = (returnKeysData, decodableParentTypeInst, "JsonPolymorphicSameLevelTypeData", polyVarName, isArray, extraCodingKeys)
                 returnArray.append(returnData)
             }
             return returnArray
@@ -347,6 +354,18 @@ fileprivate extension LabeledExprSyntax {
     
     func getElements() -> ArrayElementListSyntax? {
         return self.expression.as(MemberAccessExprSyntax.self)?.base?.as(ArrayExprSyntax.self)?.elements
+    }
+    
+    func getExtraCodingKeys() -> [ExtraCustomCodingKeys] {
+        var extraCodingKeys = [ExtraCustomCodingKeys]()
+        self.expression.as(ArrayExprSyntax.self)?.elements.forEach({ element in
+            let args = element.expression.as(FunctionCallExprSyntax.self)?.arguments
+            guard let paramName = args?.first(where: {$0.label?.text == "paramName"})?.as(LabeledExprSyntax.self)?.getStringValue() else { return }
+            guard let paramCodingKey = args?.first(where: {$0.label?.text == "paramCodingKey"})?.as(LabeledExprSyntax.self)?.getStringValue() else { return }
+            guard let decodingType = args?.first(where: {$0.label?.text == "type"})?.as(LabeledExprSyntax.self)?.getTypeValue() else { return }
+            extraCodingKeys.append((paramName, paramCodingKey, decodingType))
+        })
+        return extraCodingKeys
     }
 }
 

@@ -47,7 +47,7 @@ public struct JsonPolymorphicMacro: MemberMacro {
          **/
         // MARK: Params block
         var codeBlockGen: [DeclSyntax] = [DeclSyntax(stringLiteral: "")]
-        arrayPolyData.forEach{(polyMorphicData, dataGenericType, dataType, polyVarParamName, isDummyArray) in
+        arrayPolyData.forEach{(polyMorphicData, dataGenericType, dataType, polyVarParamName, isDummyArray, extraCodingKeys) in
             guard let polymorphicParamData = polyMorphicData.first?.value.first else {
                 //TODO promt here error
                 return
@@ -70,6 +70,10 @@ public struct JsonPolymorphicMacro: MemberMacro {
                 let jsonPolyKeyVariable = "let \(polyKeyLocalVariable): String?"
                 codeBlockGen.append(DeclSyntax(stringLiteral: jsonPolyKeyVariable))
             }
+            extraCodingKeys.forEach { (paramName: String, paramCodingKey: String, type: String) in
+                let jsonPolyKeyVariable = "let \(paramName): \(type)?"
+                codeBlockGen.append(DeclSyntax(stringLiteral: jsonPolyKeyVariable))
+            }
         }
         
         // MARK: Coding Keys Enum block
@@ -78,7 +82,7 @@ public struct JsonPolymorphicMacro: MemberMacro {
                 return  "case \(variable)"
             }
             .joined(separator: "\n")
-        arrayPolyData.forEach{(polyMorphicData, dataGenericType, dataType, polyVarParamName, isDummyArray) in
+        arrayPolyData.forEach{(polyMorphicData, dataGenericType, dataType, polyVarParamName, isDummyArray, extraCodingKeys) in
             guard let polymorphicParamData = polyMorphicData.first?.value.first else {
                 //TODO promt here error
                 return
@@ -89,9 +93,13 @@ public struct JsonPolymorphicMacro: MemberMacro {
             if dataType != DataClassTypes.jsonPolymorphicSameLevelTypeData.rawValue {
                 parameters.append("case \(polyKeyLocalVariable) = \"\(polyKey)\"")
                 parameters.append("case \(polymorphicParamData.key)")
+                if (!extraCodingKeys.isEmpty) { parameters.append("\n") }
             }
             if dataType == DataClassTypes.jsonPolymorphicSameLevelTypeData.rawValue {
                 parameters.append("case \(polyVarParamName) = \"\(polyVarParamName)\"")
+            }
+            extraCodingKeys.forEach { (paramName: String, paramCodingKey: String, type: String) in
+                parameters.append("case \(paramName) = \"\(paramCodingKey)\"")
             }
         }
         let enumBlock = """
@@ -137,7 +145,7 @@ public struct JsonPolymorphicMacro: MemberMacro {
         
         // MARK: Dynamic Block
         //Add any change here to make key deserialize more dynamic
-        try arrayPolyData.forEach{(polyMorphicData, dataGenericType, dataType, polyVarParamName, isDummyArray) in
+        try arrayPolyData.forEach{(polyMorphicData, dataGenericType, dataType, polyVarParamName, isDummyArray, extraCodingKeys) in
             guard let polymorphicParamData = polyMorphicData.first?.value.first else {
                 //TODO promt here error
                 return
@@ -153,6 +161,9 @@ public struct JsonPolymorphicMacro: MemberMacro {
             let polyKey = polyMorphicData.first!.key
             let polyKeyLocalVariable = polyKey.first?.isLetter == true ? polyKey : String(polyKey.dropFirst())
             print("======= Decoding block for \(polyVarParamName) =============")
+            extraCodingKeys.forEach { (paramName: String, paramCodingKey: String, type: String) in
+                initBlock.append(CodeBlockItemSyntax("self.\(raw: paramName) = try values.decodeIfPresent(\(raw: type).self, forKey: .\(raw:paramName))"))
+            }
             let dummyInstanceName = "dummyModel\(polyVarParamName)"
             if dataType != DataClassTypes.jsonPolymorphicSameLevelTypeData.rawValue {
                 initBlock.append(CodeBlockItemSyntax("self.\(raw: polyKeyLocalVariable) = try values.decodeIfPresent(String.self, forKey: .\(raw:polyKeyLocalVariable))"))

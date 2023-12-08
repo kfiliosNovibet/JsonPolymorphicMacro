@@ -13,13 +13,27 @@ public final class JsonPolymorphicSameLevelTypeData<T> {
     let polyMorphicContent: String
     let decodingTypes: [String: Decodable.Type]
     let decodableType: T.Type
+    let extraCustomCodingKeys: [ExtraCustomCodingKey]
     
-    public init(key: String, dummyDecoder: Decodable.Type, polyVarName: String, decodableParentType: T.Type, decodingTypes: [String : Decodable.Type]) {
+    public init(key: String, dummyDecoder: Decodable.Type, polyVarName: String,
+                decodableParentType: T.Type, decodingTypes: [String : Decodable.Type],
+                extraCustomCodingKeys: [ExtraCustomCodingKey]) {
         self.dummyDecoder = dummyDecoder
         self.polyMorphickey = key
         self.polyMorphicContent = polyVarName
         self.decodingTypes = decodingTypes
         self.decodableType = decodableParentType
+        self.extraCustomCodingKeys = extraCustomCodingKeys
+    }
+    
+    public init(key: String, dummyDecoder: Decodable.Type, polyVarName: String,
+                decodableParentType: T.Type, decodingTypes: [String : Decodable.Type]) {
+        self.dummyDecoder = dummyDecoder
+        self.polyMorphickey = key
+        self.polyMorphicContent = polyVarName
+        self.decodingTypes = decodingTypes
+        self.decodableType = decodableParentType
+        self.extraCustomCodingKeys = []
     }
     
 }

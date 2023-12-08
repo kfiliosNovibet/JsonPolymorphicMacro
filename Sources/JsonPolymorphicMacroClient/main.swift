@@ -76,7 +76,8 @@ struct PolyResponse2: Decodable {
 @JsonPolymorphicKeys((JsonPolymorphicTypeData(key: "type", polyVarName: "content",
                                               decodableParentType: Response.self,
                                               decodingTypes: ["Telephones":TelephoneResponse.self,
-                                                              "Adresses":AdressesResponse.self])))
+                                                              "Adresses":AdressesResponse.self],
+                                              extraCustomCodingKeys: [ExtraCustomCodingKey(paramName: "oldTypes", paramCodingKey:"$oldTypes", type: String.self)])))
 struct PolyResponse: Decodable {
     let cities: [String]?
 }
