@@ -27,7 +27,7 @@ extension JsonPolymorphicMacroDiagnostic: DiagnosticMessage {
         public var message: String {
             switch self {
             case let .generic(message):
-                return "JsonPolymorphicMacro \(message)"
+                return "JsonPolymorphicMacro error: \(message)"
                 
             case let .wrongPropertyType(propertyName, propertyType):
                 return "Property \(propertyName) should be \(propertyType)"

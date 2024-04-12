@@ -32,7 +32,10 @@ final class Utils {
             return nil
         }
         var isTupleClassed = false
-        guard let args = arguments.as(LabeledExprListSyntax.self)?.first?.expression.as(TupleExprSyntax.self) else { return nil }
+        guard let args = arguments.as(LabeledExprListSyntax.self)?.first?.expression.as(TupleExprSyntax.self) else {
+            context.diagnose(JsonPolymorphicMacroDiagnostic.generic(message: "JsonPolymorphicKeys needs tuple input, please check parentheses").diagnose(at: attribute))
+            return nil
+        }
         let className = getClassDataName(of: args, attachedTo: declaration, in: context)
         switch (className) {
         case DataClassTypes.jsonPolymorphicTypeData.rawValue, DataClassTypes.jsonPolymorphicSameLevelTypeData.rawValue:

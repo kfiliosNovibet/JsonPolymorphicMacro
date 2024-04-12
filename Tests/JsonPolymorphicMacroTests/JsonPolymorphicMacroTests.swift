@@ -44,13 +44,13 @@ final class JsonPolymorphicMacroTests: XCTestCase {
 
                 init(from decoder: Decoder) throws  {
                     let values = try decoder.container(keyedBy: CodingKeys.self)
-                    self.cities = try values.decodeIfPresent([String: String?].self, forKey: .cities)
-                    self.type = try values.decodeIfPresent(String.self, forKey: .type)
+                    self.cities = try? values.decodeIfPresent([String: String?].self, forKey: .cities)
+                    self.type = try? values.decodeIfPresent(String.self, forKey: .type)
                     switch self.type {
                     case "Adresses":
-                        content = try values.decodeIfPresent(AdressesResponse.self, forKey: .content)
+                        content = try? values.decodeIfPresent(AdressesResponse.self, forKey: .content)
                     case "Telephones":
-                        content = try values.decodeIfPresent(TelephoneResponse.self, forKey: .content)
+                        content = try? values.decodeIfPresent(TelephoneResponse.self, forKey: .content)
                     default:
                         content = nil
                     }
@@ -95,13 +95,13 @@ final class JsonPolymorphicMacroTests: XCTestCase {
 
                 init(from decoder: Decoder) throws  {
                     let values = try decoder.container(keyedBy: CodingKeys.self)
-                    self.cities = try values.decodeIfPresent([String: String?].self, forKey: .cities)
-                    self.type = try values.decodeIfPresent(String.self, forKey: .type)
+                    self.cities = try? values.decodeIfPresent([String: String?].self, forKey: .cities)
+                    self.type = try? values.decodeIfPresent(String.self, forKey: .type)
                     switch self.type {
                     case "Adresses":
-                        content = try values.decodeIfPresent(AdressesResponse.self, forKey: .content)
+                        content = try? values.decodeIfPresent(AdressesResponse.self, forKey: .content)
                     case "Telephones":
-                        content = try values.decodeIfPresent(TelephoneResponse.self, forKey: .content)
+                        content = try? values.decodeIfPresent(TelephoneResponse.self, forKey: .content)
                     default:
                         content = nil
                     }
@@ -146,13 +146,13 @@ final class JsonPolymorphicMacroTests: XCTestCase {
 
                 init(from decoder: Decoder) throws  {
                     let values = try decoder.container(keyedBy: CodingKeys.self)
-                    self.cities = try values.decodeIfPresent([String: String].self, forKey: .cities)
-                    self.type = try values.decodeIfPresent(String.self, forKey: .type)
+                    self.cities = try? values.decodeIfPresent([String: String].self, forKey: .cities)
+                    self.type = try? values.decodeIfPresent(String.self, forKey: .type)
                     switch self.type {
                     case "Adresses":
-                        content = try values.decodeIfPresent(AdressesResponse.self, forKey: .content)
+                        content = try? values.decodeIfPresent(AdressesResponse.self, forKey: .content)
                     case "Telephones":
-                        content = try values.decodeIfPresent(TelephoneResponse.self, forKey: .content)
+                        content = try? values.decodeIfPresent(TelephoneResponse.self, forKey: .content)
                     default:
                         content = nil
                     }
@@ -197,13 +197,13 @@ final class JsonPolymorphicMacroTests: XCTestCase {
 
                 init(from decoder: Decoder) throws  {
                     let values = try decoder.container(keyedBy: CodingKeys.self)
-                    self.cities = try values.decodeIfPresent([String].self, forKey: .cities)
-                    self.type = try values.decodeIfPresent(String.self, forKey: .type)
+                    self.cities = try? values.decodeIfPresent([String].self, forKey: .cities)
+                    self.type = try? values.decodeIfPresent(String.self, forKey: .type)
                     switch self.type {
                     case "Adresses":
-                        content = try values.decodeIfPresent(AdressesResponse.self, forKey: .content)
+                        content = try? values.decodeIfPresent(AdressesResponse.self, forKey: .content)
                     case "Telephones":
-                        content = try values.decodeIfPresent(TelephoneResponse.self, forKey: .content)
+                        content = try? values.decodeIfPresent(TelephoneResponse.self, forKey: .content)
                     default:
                         content = nil
                     }
@@ -248,13 +248,13 @@ final class JsonPolymorphicMacroTests: XCTestCase {
 
                 init(from decoder: Decoder) throws  {
                     let values = try decoder.container(keyedBy: CodingKeys.self)
-                    self.cities = try values.decodeIfPresent([String?].self, forKey: .cities)
-                    self.type = try values.decodeIfPresent(String.self, forKey: .type)
+                    self.cities = try? values.decodeIfPresent([String?].self, forKey: .cities)
+                    self.type = try? values.decodeIfPresent(String.self, forKey: .type)
                     switch self.type {
                     case "Adresses":
-                        content = try values.decodeIfPresent(AdressesResponse.self, forKey: .content)
+                        content = try? values.decodeIfPresent(AdressesResponse.self, forKey: .content)
                     case "Telephones":
-                        content = try values.decodeIfPresent(TelephoneResponse.self, forKey: .content)
+                        content = try? values.decodeIfPresent(TelephoneResponse.self, forKey: .content)
                     default:
                         content = nil
                     }
@@ -302,16 +302,16 @@ final class JsonPolymorphicMacroTests: XCTestCase {
 
                 init(from decoder: Decoder) throws  {
                     let values = try decoder.container(keyedBy: CodingKeys.self)
-                    self.name = try values.decodeIfPresent(String.self, forKey: .name)
-                    self.a = try values.decodeIfPresent(String.self, forKey: .a)
-                    self.type = try values.decodeIfPresent(String.self, forKey: .type)
+                    self.name = try? values.decodeIfPresent(String.self, forKey: .name)
+                    self.a = try? values.decodeIfPresent(String.self, forKey: .a)
+                    self.type = try? values.decodeIfPresent(String.self, forKey: .type)
                     switch self.type {
                     case "Empty":
-                        content = try values.decodeIfPresent(EmptyResponse.self, forKey: .content)
+                        content = try? values.decodeIfPresent(EmptyResponse.self, forKey: .content)
                     case "Many":
-                        content = try values.decodeIfPresent(ListResponse.self, forKey: .content)
+                        content = try? values.decodeIfPresent(ListResponse.self, forKey: .content)
                     case "Single":
-                        content = try values.decodeIfPresent(SingleResponse.self, forKey: .content)
+                        content = try? values.decodeIfPresent(SingleResponse.self, forKey: .content)
                     default:
                         content = nil
                     }
@@ -362,18 +362,18 @@ final class JsonPolymorphicMacroTests: XCTestCase {
 
                 init(from decoder: Decoder) throws  {
                     let values = try decoder.container(keyedBy: CodingKeys.self)
-                    self.name = try values.decodeIfPresent(String.self, forKey: .name)
-                    self.a = try values.decodeIfPresent(String.self, forKey: .a)
-                    self.type = try values.decodeIfPresent(String.self, forKey: .type)
+                    self.name = try? values.decodeIfPresent(String.self, forKey: .name)
+                    self.a = try? values.decodeIfPresent(String.self, forKey: .a)
+                    self.type = try? values.decodeIfPresent(String.self, forKey: .type)
                     switch self.type {
                     case "Empty":
-                        content = try values.decodeIfPresent(EmptyResponse.self, forKey: .content)
+                        content = try? values.decodeIfPresent(EmptyResponse.self, forKey: .content)
                     case "Many":
-                        content = try values.decodeIfPresent(ListResponse.self, forKey: .content)
+                        content = try? values.decodeIfPresent(ListResponse.self, forKey: .content)
                     case "Single":
-                        content = try values.decodeIfPresent(SingleResponse.self, forKey: .content)
+                        content = try? values.decodeIfPresent(SingleResponse.self, forKey: .content)
                     case "WhatElse":
-                        content = try values.decodeIfPresent(WhatEverResponse.self, forKey: .content)
+                        content = try? values.decodeIfPresent(WhatEverResponse.self, forKey: .content)
                     default:
                         content = nil
                     }
@@ -428,22 +428,22 @@ final class JsonPolymorphicMacroTests: XCTestCase {
 
                 init(from decoder: Decoder) throws  {
                     let values = try decoder.container(keyedBy: CodingKeys.self)
-                    self.cities = try values.decodeIfPresent([String].self, forKey: .cities)
-                    self.type = try values.decodeIfPresent(String.self, forKey: .type)
+                    self.cities = try? values.decodeIfPresent([String].self, forKey: .cities)
+                    self.type = try? values.decodeIfPresent(String.self, forKey: .type)
                     switch self.type {
                     case "Adresses":
-                        content = try values.decodeIfPresent(AdressesResponse.self, forKey: .content)
+                        content = try? values.decodeIfPresent(AdressesResponse.self, forKey: .content)
                     case "Telephones":
-                        content = try values.decodeIfPresent(TelephoneResponse.self, forKey: .content)
+                        content = try? values.decodeIfPresent(TelephoneResponse.self, forKey: .content)
                     default:
                         content = nil
                     }
-                    self.type2 = try values.decodeIfPresent(String.self, forKey: .type2)
+                    self.type2 = try? values.decodeIfPresent(String.self, forKey: .type2)
                     switch self.type2 {
                     case "Adresses":
-                        content2 = try values.decodeIfPresent(AdressesResponse.self, forKey: .content2)
+                        content2 = try? values.decodeIfPresent(AdressesResponse.self, forKey: .content2)
                     case "Telephones":
-                        content2 = try values.decodeIfPresent(TelephoneResponse.self, forKey: .content2)
+                        content2 = try? values.decodeIfPresent(TelephoneResponse.self, forKey: .content2)
                     default:
                         content2 = nil
                     }
@@ -492,14 +492,14 @@ final class JsonPolymorphicMacroTests: XCTestCase {
 
                 init(from decoder: Decoder) throws  {
                     let values = try decoder.container(keyedBy: CodingKeys.self)
-                    self.cities = try values.decodeIfPresent([String].self, forKey: .cities)
-                    self.oldTypes = try values.decodeIfPresent(String.self, forKey: .oldTypes)
-                    self.type = try values.decodeIfPresent(String.self, forKey: .type)
+                    self.cities = try? values.decodeIfPresent([String].self, forKey: .cities)
+                    self.oldTypes = try? values.decodeIfPresent(String.self, forKey: .oldTypes)
+                    self.type = try? values.decodeIfPresent(String.self, forKey: .type)
                     switch self.type {
                     case "Adresses":
-                        content = try values.decodeIfPresent(AdressesResponse.self, forKey: .content)
+                        content = try? values.decodeIfPresent(AdressesResponse.self, forKey: .content)
                     case "Telephones":
-                        content = try values.decodeIfPresent(TelephoneResponse.self, forKey: .content)
+                        content = try? values.decodeIfPresent(TelephoneResponse.self, forKey: .content)
                     default:
                         content = nil
                     }
@@ -551,15 +551,15 @@ final class JsonPolymorphicMacroTests: XCTestCase {
 
                 init(from decoder: Decoder) throws  {
                     let values = try decoder.container(keyedBy: CodingKeys.self)
-                    self.cities = try values.decodeIfPresent([String].self, forKey: .cities)
-                    self.oldTypes = try values.decodeIfPresent(String.self, forKey: .oldTypes)
-                    self.newTypes = try values.decodeIfPresent(Int.self, forKey: .newTypes)
-                    self.type = try values.decodeIfPresent(String.self, forKey: .type)
+                    self.cities = try? values.decodeIfPresent([String].self, forKey: .cities)
+                    self.oldTypes = try? values.decodeIfPresent(String.self, forKey: .oldTypes)
+                    self.newTypes = try? values.decodeIfPresent(Int.self, forKey: .newTypes)
+                    self.type = try? values.decodeIfPresent(String.self, forKey: .type)
                     switch self.type {
                     case "Adresses":
-                        content = try values.decodeIfPresent(AdressesResponse.self, forKey: .content)
+                        content = try? values.decodeIfPresent(AdressesResponse.self, forKey: .content)
                     case "Telephones":
-                        content = try values.decodeIfPresent(TelephoneResponse.self, forKey: .content)
+                        content = try? values.decodeIfPresent(TelephoneResponse.self, forKey: .content)
                     default:
                         content = nil
                     }

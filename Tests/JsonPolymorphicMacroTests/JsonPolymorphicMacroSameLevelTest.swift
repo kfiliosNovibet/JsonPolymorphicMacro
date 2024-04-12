@@ -105,13 +105,13 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
 
                 init(from decoder: Decoder) throws  {
                     let values = try decoder.container(keyedBy: CodingKeys.self)
-                    self.id = try values.decodeIfPresent(String.self, forKey: .id)
-                    let dummyModelstate = try values.decodeIfPresent(DummyBetslipState.self, forKey: .state)
+                    self.id = try? values.decodeIfPresent(String.self, forKey: .id)
+                    let dummyModelstate = try? values.decodeIfPresent(DummyBetslipState.self, forKey: .state)
                     switch dummyModelstate?.type {
                     case "Empty":
-                        state = try values.decodeIfPresent(BetslipStateEmpty.self, forKey: .state)
+                        state = try? values.decodeIfPresent(BetslipStateEmpty.self, forKey: .state)
                     case "Input":
-                        state = try values.decodeIfPresent(BetslipStateInput.self, forKey: .state)
+                        state = try? values.decodeIfPresent(BetslipStateInput.self, forKey: .state)
                     default:
                         state = nil
                     }
@@ -162,10 +162,10 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
 
                 init(from decoder: Decoder) throws  {
                     let values = try decoder.container(keyedBy: CodingKeys.self)
-                    self.changesDetected = try values.decodeIfPresent(Bool.self, forKey: .changesDetected)
-                    self.betContextModes = try values.decodeIfPresent([BetContextMode].self, forKey: .betContextModes)
-                    self.combinations = try values.decodeIfPresent([BetslipCombination].self, forKey: .combinations)
-                    let dummyModelselections = try values.decodeIfPresent([DummyBetslipState].self, forKey: .selections)
+                    self.changesDetected = try? values.decodeIfPresent(Bool.self, forKey: .changesDetected)
+                    self.betContextModes = try? values.decodeIfPresent([BetContextMode].self, forKey: .betContextModes)
+                    self.combinations = try? values.decodeIfPresent([BetslipCombination].self, forKey: .combinations)
+                    let dummyModelselections = try? values.decodeIfPresent([DummyBetslipState].self, forKey: .selections)
                     var selectionsInstance: [BetslipBaseState] = []
                     var nestedContainerselections = try values.nestedUnkeyedContainer(forKey: .selections)
                     while !nestedContainerselections.isAtEnd {
@@ -235,9 +235,9 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
 
                 init(from decoder: Decoder) throws  {
                     let values = try decoder.container(keyedBy: CodingKeys.self)
-                    self.changesDetected = try values.decodeIfPresent(Bool.self, forKey: .changesDetected)
-                    self.betContextModes = try values.decodeIfPresent([BetContextMode].self, forKey: .betContextModes)
-                    let dummyModelselections = try values.decodeIfPresent([DummyBetslipState].self, forKey: .selections)
+                    self.changesDetected = try? values.decodeIfPresent(Bool.self, forKey: .changesDetected)
+                    self.betContextModes = try? values.decodeIfPresent([BetContextMode].self, forKey: .betContextModes)
+                    let dummyModelselections = try? values.decodeIfPresent([DummyBetslipState].self, forKey: .selections)
                     var selectionsInstance: [BetslipBaseSelection] = []
                     var nestedContainerselections = try values.nestedUnkeyedContainer(forKey: .selections)
                     while !nestedContainerselections.isAtEnd {
@@ -254,7 +254,7 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
                         selections = nil
                     }}
                     self.selections = selectionsInstance
-                    let dummyModelcombinations = try values.decodeIfPresent([DummyBetslipState].self, forKey: .combinations)
+                    let dummyModelcombinations = try? values.decodeIfPresent([DummyBetslipState].self, forKey: .combinations)
                     var combinationsInstance: [BetslipBaseCombination] = []
                     var nestedContainercombinations = try values.nestedUnkeyedContainer(forKey: .combinations)
                     while !nestedContainercombinations.isAtEnd {
@@ -324,18 +324,18 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
 
                 init(from decoder: Decoder) throws  {
                     let values = try decoder.container(keyedBy: CodingKeys.self)
-                    self.changesDetected = try values.decodeIfPresent(Bool.self, forKey: .changesDetected)
-                    self.betContextModes = try values.decodeIfPresent([BetContextMode].self, forKey: .betContextModes)
-                    let dummyModelselections = try values.decodeIfPresent(DummyBetslipState.self, forKey: .selections)
+                    self.changesDetected = try? values.decodeIfPresent(Bool.self, forKey: .changesDetected)
+                    self.betContextModes = try? values.decodeIfPresent([BetContextMode].self, forKey: .betContextModes)
+                    let dummyModelselections = try? values.decodeIfPresent(DummyBetslipState.self, forKey: .selections)
                     switch dummyModelselections?.type {
                     case "Selection.Mutliple":
-                        selections = try values.decodeIfPresent(BetslipMultipleSelection.self, forKey: .selections)
+                        selections = try? values.decodeIfPresent(BetslipMultipleSelection.self, forKey: .selections)
                     case "Selection.Single":
-                        selections = try values.decodeIfPresent(BetslipSingleSelection.self, forKey: .selections)
+                        selections = try? values.decodeIfPresent(BetslipSingleSelection.self, forKey: .selections)
                     default:
                         selections = nil
                     }
-                    let dummyModelcombinations = try values.decodeIfPresent([DummyBetslipState].self, forKey: .combinations)
+                    let dummyModelcombinations = try? values.decodeIfPresent([DummyBetslipState].self, forKey: .combinations)
                     var combinationsInstance: [BetslipBaseCombination] = []
                     var nestedContainercombinations = try values.nestedUnkeyedContainer(forKey: .combinations)
                     while !nestedContainercombinations.isAtEnd {
@@ -403,11 +403,11 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
 
                 init(from decoder: Decoder) throws  {
                     let values = try decoder.container(keyedBy: CodingKeys.self)
-                    self.changesDetected = try values.decodeIfPresent(Bool.self, forKey: .changesDetected)
-                    self.betContextModes = try values.decodeIfPresent([BetContextMode].self, forKey: .betContextModes)
-                    self.combinations = try values.decodeIfPresent([BetslipCombination].self, forKey: .combinations)
-                    self.type = try values.decodeIfPresent(String.self, forKey: .type)
-                    let dummyModelselections = try values.decodeIfPresent([DummyBetslipState].self, forKey: .selections)
+                    self.changesDetected = try? values.decodeIfPresent(Bool.self, forKey: .changesDetected)
+                    self.betContextModes = try? values.decodeIfPresent([BetContextMode].self, forKey: .betContextModes)
+                    self.combinations = try? values.decodeIfPresent([BetslipCombination].self, forKey: .combinations)
+                    self.type = try? values.decodeIfPresent(String.self, forKey: .type)
+                    let dummyModelselections = try? values.decodeIfPresent([DummyBetslipState].self, forKey: .selections)
                     var selectionsInstance: [BetslipBaseSelection] = []
                     var nestedContainerselections = try values.nestedUnkeyedContainer(forKey: .selections)
                     while !nestedContainerselections.isAtEnd {
@@ -481,13 +481,13 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
 
                 init(from decoder: Decoder) throws  {
                     let values = try decoder.container(keyedBy: CodingKeys.self)
-                    self.changesDetected = try values.decodeIfPresent(Bool.self, forKey: .changesDetected)
-                    self.betContextModes = try values.decodeIfPresent([BetContextMode].self, forKey: .betContextModes)
-                    self.combinations = try values.decodeIfPresent([BetslipCombination].self, forKey: .combinations)
-                    self.type = try values.decodeIfPresent(String.self, forKey: .type)
-                    self.newType = try values.decodeIfPresent(String.self, forKey: .newType)
-                    self.oldType = try values.decodeIfPresent(String.self, forKey: .oldType)
-                    let dummyModelselections = try values.decodeIfPresent([DummyBetslipState].self, forKey: .selections)
+                    self.changesDetected = try? values.decodeIfPresent(Bool.self, forKey: .changesDetected)
+                    self.betContextModes = try? values.decodeIfPresent([BetContextMode].self, forKey: .betContextModes)
+                    self.combinations = try? values.decodeIfPresent([BetslipCombination].self, forKey: .combinations)
+                    self.type = try? values.decodeIfPresent(String.self, forKey: .type)
+                    self.newType = try? values.decodeIfPresent(String.self, forKey: .newType)
+                    self.oldType = try? values.decodeIfPresent(String.self, forKey: .oldType)
+                    let dummyModelselections = try? values.decodeIfPresent([DummyBetslipState].self, forKey: .selections)
                     var selectionsInstance: [BetslipBaseSelection] = []
                     var nestedContainerselections = try values.nestedUnkeyedContainer(forKey: .selections)
                     while !nestedContainerselections.isAtEnd {

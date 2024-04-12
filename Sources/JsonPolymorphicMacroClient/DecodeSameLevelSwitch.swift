@@ -89,7 +89,21 @@ struct BetslipSingleCombination: BetslipBaseCombination {}
 struct BetslipMutlipleCombination: BetslipBaseCombination {}
 struct BetContextMode: Decodable {}
 struct BetslipSingleSelection: BetslipBaseSelection {}
-struct BetslipMultipleSelection: BetslipBaseSelection {}
+struct BetslipMultipleSelection: BetslipBaseSelection {
+    let changesDetected: Bool?
+    let type: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case changesDetected
+        case type = "$type"
+    }
+    
+    init(from decoder: Decoder) throws  {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        self.changesDetected = try values.decodeIfPresent(Bool.self, forKey: .changesDetected)
+        self.type = try values.decodeIfPresent(String.self, forKey: .type)
+    }
+}
 
 
 @JsonPolymorphicKeys((JsonPolymorphicSameLevelTypeData(key: "$type",
