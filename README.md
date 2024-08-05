@@ -1,7 +1,16 @@
+<p align="center">
+  <a href="https://developer.apple.com/swift/"><img src="https://img.shields.io/badge/Swift-5.7-orange.svg?style=flat" alt="Swift 5.7"></a>
+  <a href="https://github.com/apple/swift-package-manager"><img src="https://img.shields.io/badge/Swift%20Package%20Manager-compatible-brightgreen.svg" alt="SPM"></a>
+</p>
+
+# Currency Swift Package Manager for iOS
+
+This is a Currency module for the native iOS app
+
 # JsonPolymorphicMacro
 #### A Macro to handle Polymorphic Json Decodables
 
-This Macro supports an elegant way to handle polymorphic jsons, 
+This is a Macro supports an elegant way to handle polymorphic jsons, 
 it removes the decoder code redundancy 
 
 Example: 
