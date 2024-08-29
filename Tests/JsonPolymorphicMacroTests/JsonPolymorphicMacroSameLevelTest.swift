@@ -167,7 +167,7 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
                     self.combinations = try? values.decodeIfPresent([BetslipCombination].self, forKey: .combinations)
                     let dummyModelselections = try? values.decodeIfPresent([DummyBetslipState].self, forKey: .selections)
                     var selectionsInstance: [BetslipBaseState] = []
-                    var nestedContainerselections = try values.nestedUnkeyedContainer(forKey: .selections)
+                    if var nestedContainerselections = try? values.nestedUnkeyedContainer(forKey: .selections) {
                     while !nestedContainerselections.isAtEnd {
                     let dummyItem = dummyModelselections? [nestedContainerselections.currentIndex]
                     switch dummyItem?.type {
@@ -180,7 +180,7 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
                     default:
                         _ = try? nestedContainerselections.decode(DummyBetslipState.self)
                         selections = nil
-                    }}
+                    }}}
                     self.selections = selectionsInstance
                 }
                 
@@ -239,7 +239,7 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
                     self.betContextModes = try? values.decodeIfPresent([BetContextMode].self, forKey: .betContextModes)
                     let dummyModelselections = try? values.decodeIfPresent([DummyBetslipState].self, forKey: .selections)
                     var selectionsInstance: [BetslipBaseSelection] = []
-                    var nestedContainerselections = try values.nestedUnkeyedContainer(forKey: .selections)
+                    if var nestedContainerselections = try? values.nestedUnkeyedContainer(forKey: .selections) {
                     while !nestedContainerselections.isAtEnd {
                     let dummyItem = dummyModelselections? [nestedContainerselections.currentIndex]
                     switch dummyItem?.type {
@@ -252,11 +252,11 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
                     default:
                         _ = try? nestedContainerselections.decode(DummyBetslipState.self)
                         selections = nil
-                    }}
+                    }}}
                     self.selections = selectionsInstance
                     let dummyModelcombinations = try? values.decodeIfPresent([DummyBetslipState].self, forKey: .combinations)
                     var combinationsInstance: [BetslipBaseCombination] = []
-                    var nestedContainercombinations = try values.nestedUnkeyedContainer(forKey: .combinations)
+                    if var nestedContainercombinations = try? values.nestedUnkeyedContainer(forKey: .combinations) {
                     while !nestedContainercombinations.isAtEnd {
                     let dummyItem = dummyModelcombinations? [nestedContainercombinations.currentIndex]
                     switch dummyItem?.type {
@@ -269,7 +269,7 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
                     default:
                         _ = try? nestedContainercombinations.decode(DummyBetslipState.self)
                         combinations = nil
-                    }}
+                    }}}
                     self.combinations = combinationsInstance
                 }
                 
@@ -337,7 +337,7 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
                     }
                     let dummyModelcombinations = try? values.decodeIfPresent([DummyBetslipState].self, forKey: .combinations)
                     var combinationsInstance: [BetslipBaseCombination] = []
-                    var nestedContainercombinations = try values.nestedUnkeyedContainer(forKey: .combinations)
+                    if var nestedContainercombinations = try? values.nestedUnkeyedContainer(forKey: .combinations) {
                     while !nestedContainercombinations.isAtEnd {
                     let dummyItem = dummyModelcombinations? [nestedContainercombinations.currentIndex]
                     switch dummyItem?.type {
@@ -350,7 +350,7 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
                     default:
                         _ = try? nestedContainercombinations.decode(DummyBetslipState.self)
                         combinations = nil
-                    }}
+                    }}}
                     self.combinations = combinationsInstance
                 }
                 
@@ -409,7 +409,7 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
                     self.type = try? values.decodeIfPresent(String.self, forKey: .type)
                     let dummyModelselections = try? values.decodeIfPresent([DummyBetslipState].self, forKey: .selections)
                     var selectionsInstance: [BetslipBaseSelection] = []
-                    var nestedContainerselections = try values.nestedUnkeyedContainer(forKey: .selections)
+                    if var nestedContainerselections = try? values.nestedUnkeyedContainer(forKey: .selections) {
                     while !nestedContainerselections.isAtEnd {
                     let dummyItem = dummyModelselections? [nestedContainerselections.currentIndex]
                     switch dummyItem?.type {
@@ -422,7 +422,7 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
                     default:
                         _ = try? nestedContainerselections.decode(DummyBetslipState.self)
                         selections = nil
-                    }}
+                    }}}
                     self.selections = selectionsInstance
                 }
                 
@@ -489,7 +489,7 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
                     self.oldType = try? values.decodeIfPresent(String.self, forKey: .oldType)
                     let dummyModelselections = try? values.decodeIfPresent([DummyBetslipState].self, forKey: .selections)
                     var selectionsInstance: [BetslipBaseSelection] = []
-                    var nestedContainerselections = try values.nestedUnkeyedContainer(forKey: .selections)
+                    if var nestedContainerselections = try? values.nestedUnkeyedContainer(forKey: .selections) {
                     while !nestedContainerselections.isAtEnd {
                     let dummyItem = dummyModelselections? [nestedContainerselections.currentIndex]
                     switch dummyItem?.type {
@@ -502,7 +502,7 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
                     default:
                         _ = try? nestedContainerselections.decode(DummyBetslipState.self)
                         selections = nil
-                    }}
+                    }}}
                     self.selections = selectionsInstance
                 }
                 

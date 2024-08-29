@@ -188,9 +188,9 @@ public struct JsonPolymorphicMacro: MemberMacro {
                 let nestedContainer = "nestedContainer\(polyParamName)"
                 let polyDataTypeScopeName = "\(polyParamName)Instance"
                 initBlock.append(CodeBlockItemSyntax("var \(raw: polyDataTypeScopeName): \(raw: polyDataType) = []"))
-                initBlock.append(CodeBlockItemSyntax("var \(raw: nestedContainer) = try values.nestedUnkeyedContainer(forKey: .\(raw: polyParamName))"))
+                initBlock.append(CodeBlockItemSyntax("if var \(raw: nestedContainer) = try? values.nestedUnkeyedContainer(forKey: .\(raw: polyParamName)) {"))
                 initBlock.append(CodeBlockItemSyntax("while !\(raw: nestedContainer).isAtEnd {"))
-                initBlock.append(CodeBlockItemSyntax("let dummyItem = \(raw: dummyInstanceName)?[\(raw: nestedContainer).currentIndex]"))
+                initBlock.append(CodeBlockItemSyntax("let dummyItem = \(raw: dummyInstanceName)?[\(raw:nestedContainer).currentIndex]"))
 
                 var switchCaseSynt = SwitchCaseListSyntax()
 
@@ -221,6 +221,7 @@ public struct JsonPolymorphicMacro: MemberMacro {
                     throw error
                 }
                 
+                initBlock.append(CodeBlockItemSyntax("}"))
                 initBlock.append(CodeBlockItemSyntax("}"))
                 initBlock.append(CodeBlockItemSyntax("self.\(raw: polyParamName) = \(raw: polyDataTypeScopeName)"))
                 
