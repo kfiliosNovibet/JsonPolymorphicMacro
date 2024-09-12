@@ -60,7 +60,7 @@ public struct JsonPolymorphicMacro: MemberMacro {
             var polyAccessType = "let"
             if isDummyArray {
                 polyDataType = "[\(dataGenericType)]"
-                polyAccessType = "private (set) var"
+                polyAccessType = "private(set) var"
             }
             let polymorphicVariableSet = "\(polyAccessType) \(polyParamName): \(polyDataType)?"
             codeBlockGen.append(DeclSyntax(stringLiteral: polymorphicVariableSet))
