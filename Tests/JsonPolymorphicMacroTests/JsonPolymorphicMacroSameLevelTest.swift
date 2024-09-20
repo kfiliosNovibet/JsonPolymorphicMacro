@@ -151,7 +151,7 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
 
 
 
-                private (set) var selections: [BetslipBaseState]?
+                private(set) var selections: [BetslipBaseState]?
 
                 enum CodingKeys: String, CodingKey {
                     case changesDetected
@@ -222,9 +222,9 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
 
 
 
-                private (set) var selections: [BetslipBaseSelection]?
+                private(set) var selections: [BetslipBaseSelection]?
 
-                private (set) var combinations: [BetslipBaseCombination]?
+                private(set) var combinations: [BetslipBaseCombination]?
 
                 enum CodingKeys: String, CodingKey {
                     case changesDetected
@@ -313,7 +313,7 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
 
                 let selections: BetslipBaseSelection?
 
-                private (set) var combinations: [BetslipBaseCombination]?
+                private(set) var combinations: [BetslipBaseCombination]?
 
                 enum CodingKeys: String, CodingKey {
                     case changesDetected
@@ -389,7 +389,7 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
 
 
 
-                private (set) var selections: [BetslipBaseSelection]?
+                private(set) var selections: [BetslipBaseSelection]?
 
                 let type: String?
 
@@ -461,7 +461,7 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
 
 
 
-                private (set) var selections: [BetslipBaseSelection]?
+                private(set) var selections: [BetslipBaseSelection]?
 
                 let type: String?
 
