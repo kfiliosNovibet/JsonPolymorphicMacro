@@ -32,7 +32,7 @@ final class Utils {
             return nil
         }
         var isTupleClassed = false
-        guard let args = arguments.as(LabeledExprListSyntax.self)?.first?.expression.as(TupleExprSyntax.self) else {
+        guard let args = arguments.first?.expression.as(TupleExprSyntax.self) else {
             context.diagnose(JsonPolymorphicMacroDiagnostic.generic(message: "JsonPolymorphicKeys needs tuple input, please check parentheses").diagnose(at: attribute))
             return nil
         }
@@ -59,7 +59,6 @@ final class Utils {
         }
         
         guard let modelType = args.elements.last?
-            .as(LabeledExprSyntax.self)?
             .expression
             .as(MemberAccessExprSyntax.self)?
             .base?
@@ -68,7 +67,6 @@ final class Utils {
         guard let jsonExp = args
             .elements
             .first?
-            .as(LabeledExprSyntax.self)?
             .expression
             .as(DictionaryExprSyntax.self)
         else  {
@@ -86,8 +84,7 @@ final class Utils {
             print("========== PolyKey \(jsoKey) ================")
             jsonKeyModelMapExp.forEach { jsonKeyModel in
                 var variableDecod: [String:[String:String]] = [:]
-                guard let polyDict = jsonKeyModel.as(DictionaryElementSyntax.self) else { return }
-                guard let jsonPolymorphicParamKey = polyDict.key
+                guard let jsonPolymorphicParamKey = jsonKeyModel.key
                     .as(StringLiteralExprSyntax.self)?
                     .segments.first?
                     .as(StringSegmentSyntax.self)?
@@ -148,7 +145,6 @@ final class Utils {
                 var decodableParentType: String? = nil
                 var polyVarName: String = ""
                 guard (item
-                    .as(LabeledExprSyntax.self)?
                     .expression
                     .as(FunctionCallExprSyntax.self)?
                     .arguments) != nil else {
@@ -156,7 +152,7 @@ final class Utils {
                             .generic(message: "should have a list of JsonPolymorphicSameLevelTypeData as input type" )
                             .diagnose(at: item))
                     return }
-                guard let keyArg = item.as(LabeledExprSyntax.self)?.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "key"}) else {
+                guard let keyArg = item.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "key"}) else {
                     context.diagnose(JsonPolymorphicMacroDiagnostic
                         .nonexistentSingleProperty(propertyName: "key")
                         .diagnose(at: item))
@@ -167,7 +163,7 @@ final class Utils {
                         .generic(message: "should have a list of JsonPolymorphicSameLevelTypeData as input type" )
                         .diagnose(at: keyArg))
                     return }
-                guard let polyVarNameArg = item.as(LabeledExprSyntax.self)?.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "polyVarName"}) else {
+                guard let polyVarNameArg = item.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "polyVarName"}) else {
                     context.diagnose(JsonPolymorphicMacroDiagnostic
                         .nonexistentSingleProperty(propertyName: "polyVarName")
                         .diagnose(at: item))
@@ -180,7 +176,7 @@ final class Utils {
                     return
                 }
                 polyVarName = polyVarNameInst
-                guard let decodableParentTypeArg = item.as(LabeledExprSyntax.self)?.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "decodableParentType"}) else {
+                guard let decodableParentTypeArg = item.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "decodableParentType"}) else {
                     context.diagnose(JsonPolymorphicMacroDiagnostic
                         .nonexistentSingleProperty(propertyName: "decodableParentType")
                         .diagnose(at: item))
@@ -188,7 +184,7 @@ final class Utils {
                 }
                 guard let decodableParentTypeInst = decodableParentTypeArg.getTypeValue() else { return }
                 decodableParentType = decodableParentTypeInst
-                guard let decodingTypesArgs = item.as(LabeledExprSyntax.self)?.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "decodingTypes"})?.expression.as(DictionaryExprSyntax.self) else {
+                guard let decodingTypesArgs = item.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "decodingTypes"})?.expression.as(DictionaryExprSyntax.self) else {
                     context.diagnose(JsonPolymorphicMacroDiagnostic
                         .nonexistentSingleProperty(propertyName: "decodingTypes")
                         .diagnose(at: polyVarNameArg))
@@ -208,7 +204,7 @@ final class Utils {
                 }
                 returnKeysData[key] = [polyVarName : decodingTypes]
                 guard let decodableParentTypeInst = decodableParentType else { return }
-                let extraCodingKeysArg = item.as(LabeledExprSyntax.self)?.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "extraCustomCodingKeys"})
+                let extraCodingKeysArg = item.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "extraCustomCodingKeys"})
                 let extraCodingKeys = extraCodingKeysArg?.getExtraCodingKeys() ?? [ExtraCustomCodingKeys]()
                 let returnData = (returnKeysData, decodableParentTypeInst, "JsonPolymorphicTypeData", "", false, extraCodingKeys)
                 returnArray.append(returnData)
@@ -227,7 +223,6 @@ final class Utils {
                 var decodableParentType: String? = nil
                 var polyVarName: String = ""
                 guard (item
-                    .as(LabeledExprSyntax.self)?
                     .expression
                     .as(FunctionCallExprSyntax.self)?
                     .arguments) != nil else {
@@ -235,7 +230,7 @@ final class Utils {
                             .generic(message: "should have a list of JsonPolymorphicTypeData as input type" )
                             .diagnose(at: item))
                     return }
-                guard let keyArg = item.as(LabeledExprSyntax.self)?.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "key"}) else {
+                guard let keyArg = item.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "key"}) else {
                     context.diagnose(JsonPolymorphicMacroDiagnostic
                         .nonexistentSingleProperty(propertyName: "key")
                         .diagnose(at: item))
@@ -246,7 +241,7 @@ final class Utils {
                         .generic(message: "should have a list of JsonPolymorphicTypeData as input type" )
                         .diagnose(at: keyArg))
                     return }
-                guard let dummyDecoderNameArg = item.as(LabeledExprSyntax.self)?.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "dummyDecoder"}) else {
+                guard let dummyDecoderNameArg = item.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "dummyDecoder"}) else {
                     context.diagnose(JsonPolymorphicMacroDiagnostic
                         .nonexistentSingleProperty(propertyName: "dummyDecoder")
                         .diagnose(at: item))
@@ -272,7 +267,7 @@ final class Utils {
                     }
                     dummyDecoderName = dummyDecoderNameInst
                 }
-                guard let polyVarNameArg = item.as(LabeledExprSyntax.self)?.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "polyVarName"}) else {
+                guard let polyVarNameArg = item.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "polyVarName"}) else {
                     context.diagnose(JsonPolymorphicMacroDiagnostic
                         .nonexistentSingleProperty(propertyName: "polyVarName")
                         .diagnose(at: item))
@@ -285,7 +280,7 @@ final class Utils {
                     return
                 }
                 polyVarName = polyVarNameInst
-                guard let decodableParentTypeArg = item.as(LabeledExprSyntax.self)?.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "decodableParentType"}) else {
+                guard let decodableParentTypeArg = item.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "decodableParentType"}) else {
                     context.diagnose(JsonPolymorphicMacroDiagnostic
                         .nonexistentSingleProperty(propertyName: "decodableParentType")
                         .diagnose(at: item))
@@ -293,7 +288,7 @@ final class Utils {
                 }
                 guard let decodableParentTypeInst = decodableParentTypeArg.getTypeValue() else { return }
                 decodableParentType = decodableParentTypeInst
-                guard let decodingTypesArgs = item.as(LabeledExprSyntax.self)?.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "decodingTypes"})?.expression.as(DictionaryExprSyntax.self) else {
+                guard let decodingTypesArgs = item.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "decodingTypes"})?.expression.as(DictionaryExprSyntax.self) else {
                     context.diagnose(JsonPolymorphicMacroDiagnostic
                         .nonexistentSingleProperty(propertyName: "decodingTypes")
                         .diagnose(at: dummyDecoderNameArg))
@@ -313,7 +308,7 @@ final class Utils {
                     }
                 returnKeysData[key] = [dummyDecoderName! : decodingTypes]
                 guard let decodableParentTypeInst = decodableParentType else { return }
-                let extraCodingKeysArg = item.as(LabeledExprSyntax.self)?.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "extraCustomCodingKeys"})
+                let extraCodingKeysArg = item.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "extraCustomCodingKeys"})
                 let extraCodingKeys = extraCodingKeysArg?.getExtraCodingKeys() ?? [ExtraCustomCodingKeys]()
                 let returnData = (returnKeysData, decodableParentTypeInst, "JsonPolymorphicSameLevelTypeData", polyVarName, isArray, extraCodingKeys)
                 returnArray.append(returnData)
@@ -363,9 +358,9 @@ fileprivate extension LabeledExprSyntax {
         var extraCodingKeys = [ExtraCustomCodingKeys]()
         self.expression.as(ArrayExprSyntax.self)?.elements.forEach({ element in
             let args = element.expression.as(FunctionCallExprSyntax.self)?.arguments
-            guard let paramName = args?.first(where: {$0.label?.text == "paramName"})?.as(LabeledExprSyntax.self)?.getStringValue() else { return }
-            guard let paramCodingKey = args?.first(where: {$0.label?.text == "paramCodingKey"})?.as(LabeledExprSyntax.self)?.getStringValue() else { return }
-            guard let decodingType = args?.first(where: {$0.label?.text == "type"})?.as(LabeledExprSyntax.self)?.getTypeValue() else { return }
+            guard let paramName = args?.first(where: {$0.label?.text == "paramName"})?.getStringValue() else { return }
+            guard let paramCodingKey = args?.first(where: {$0.label?.text == "paramCodingKey"})?.getStringValue() else { return }
+            guard let decodingType = args?.first(where: {$0.label?.text == "type"})?.getTypeValue() else { return }
             extraCodingKeys.append((paramName, paramCodingKey, decodingType))
         })
         return extraCodingKeys
