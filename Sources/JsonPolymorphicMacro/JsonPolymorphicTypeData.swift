@@ -12,22 +12,25 @@ public final class JsonPolymorphicTypeData<T> {
     let polyMorphicContent: String
     let decodingTypes: [String: Decodable.Type]
     let decodableType: T.Type
+    let requiredInitializers: Bool
     let extraCustomCodingKeys: [ExtraCustomCodingKey]
     
-    public init(key: String, polyVarName: String, decodableParentType: T.Type, decodingTypes: [String : Decodable.Type] ) {
+    public init(key: String, polyVarName: String, decodableParentType: T.Type, decodingTypes: [String : Decodable.Type], requiredInitializers: Bool = false) {
         self.polyMorphickey = key
         self.polyMorphicContent = polyVarName
         self.decodingTypes = decodingTypes
         self.decodableType = decodableParentType
+        self.requiredInitializers = requiredInitializers
         self.extraCustomCodingKeys = []
     }
     
     public init(key: String, polyVarName: String, decodableParentType: T.Type, decodingTypes: [String : Decodable.Type],
-                extraCustomCodingKeys: [ExtraCustomCodingKey]) {
+                requiredInitializers: Bool = false, extraCustomCodingKeys: [ExtraCustomCodingKey]) {
         self.polyMorphickey = key
         self.polyMorphicContent = polyVarName
         self.decodingTypes = decodingTypes
         self.decodableType = decodableParentType
+        self.requiredInitializers = requiredInitializers
         self.extraCustomCodingKeys = extraCustomCodingKeys
     }
     
