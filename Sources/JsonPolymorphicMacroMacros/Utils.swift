@@ -18,7 +18,7 @@ enum DataClassTypes: String {
 public typealias ExtraCustomCodingKeys = (paramName: String, paramCodingKey: String, type: String)
 
 typealias PolyData = (data: [String:[String:[String:String]]], decodableParentTypeInst: String, 
-                      decodableDataType: String, polyVarName: String, isDummyArray: Bool, extraCodingKeys: [ExtraCustomCodingKeys])
+                      decodableDataType: String, polyVarName: String, isDummyArray: Bool, requiredInitializer: Bool, extraCodingKeys: [ExtraCustomCodingKeys])
 
 final class Utils {
     static func decodeExpansion(
@@ -115,7 +115,7 @@ final class Utils {
             }
             print("==========================")
 //        }
-        return [(returnKeysData, modelType, "Dict", "", false, [])]
+        return [(returnKeysData, modelType, "Dict", "", false, false, [])]
     }
     
     private static func getClassDataName( of attributes: TupleExprSyntax,
@@ -140,10 +140,21 @@ final class Utils {
             in context: some MacroExpansionContext
         ) -> [PolyData]? {
             var returnArray = [PolyData]()
+            var isRequiredInitializers = false
             attributes.elements.forEach { item in
                 var returnKeysData: [String:[String:[String:String]]] = [:]
                 var decodableParentType: String? = nil
                 var polyVarName: String = ""
+                if (!isRequiredInitializers){
+                    isRequiredInitializers = (item.as(LabeledExprSyntax.self)?
+                        .expression
+                        .as(FunctionCallExprSyntax.self)?
+                        .arguments
+                        .first(where: { $0.label?.text == "requiredInitializers" })?
+                        .expression
+                        .as(BooleanLiteralExprSyntax.self)?
+                        .literal.tokenKind == .keyword(.true))
+                }
                 guard (item
                     .expression
                     .as(FunctionCallExprSyntax.self)?
@@ -206,7 +217,7 @@ final class Utils {
                 guard let decodableParentTypeInst = decodableParentType else { return }
                 let extraCodingKeysArg = item.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "extraCustomCodingKeys"})
                 let extraCodingKeys = extraCodingKeysArg?.getExtraCodingKeys() ?? [ExtraCustomCodingKeys]()
-                let returnData = (returnKeysData, decodableParentTypeInst, "JsonPolymorphicTypeData", "", false, extraCodingKeys)
+                let returnData = (returnKeysData, decodableParentTypeInst, "JsonPolymorphicTypeData", "", false, isRequiredInitializers, extraCodingKeys)
                 returnArray.append(returnData)
             }
             return returnArray
@@ -218,10 +229,21 @@ final class Utils {
             in context: some MacroExpansionContext
         ) -> [PolyData]? {
             var returnArray = [PolyData]()
+            var isRequiredInitializers = false
             attributes.elements.forEach { item in
                 var returnKeysData: [String:[String:[String:String]]] = [:]
                 var decodableParentType: String? = nil
                 var polyVarName: String = ""
+                if (!isRequiredInitializers){
+                    isRequiredInitializers = (item.as(LabeledExprSyntax.self)?
+                        .expression
+                        .as(FunctionCallExprSyntax.self)?
+                        .arguments
+                        .first(where: { $0.label?.text == "requiredInitializers" })?
+                        .expression
+                        .as(BooleanLiteralExprSyntax.self)?
+                        .literal.tokenKind == .keyword(.true))
+                }
                 guard (item
                     .expression
                     .as(FunctionCallExprSyntax.self)?
@@ -310,7 +332,7 @@ final class Utils {
                 guard let decodableParentTypeInst = decodableParentType else { return }
                 let extraCodingKeysArg = item.expression.as(FunctionCallExprSyntax.self)?.arguments.first(where: {$0.label?.text == "extraCustomCodingKeys"})
                 let extraCodingKeys = extraCodingKeysArg?.getExtraCodingKeys() ?? [ExtraCustomCodingKeys]()
-                let returnData = (returnKeysData, decodableParentTypeInst, "JsonPolymorphicSameLevelTypeData", polyVarName, isArray, extraCodingKeys)
+                let returnData = (returnKeysData, decodableParentTypeInst, "JsonPolymorphicSameLevelTypeData", polyVarName, isArray, isRequiredInitializers, extraCodingKeys)
                 returnArray.append(returnData)
             }
             return returnArray

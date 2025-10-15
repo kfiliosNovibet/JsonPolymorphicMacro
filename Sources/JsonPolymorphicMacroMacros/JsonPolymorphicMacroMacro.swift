@@ -12,7 +12,6 @@ public struct JsonPolymorphicMacro: MemberMacro {
     ) throws -> [DeclSyntax] {
         
         var membersInst = declaration.as(StructDeclSyntax.self)?.memberBlock.members
-        
         if membersInst == nil {
             membersInst = declaration.as(ClassDeclSyntax.self)?.memberBlock.members
         }
@@ -47,7 +46,7 @@ public struct JsonPolymorphicMacro: MemberMacro {
          **/
         // MARK: Params block
         var codeBlockGen: [DeclSyntax] = [DeclSyntax(stringLiteral: "")]
-        arrayPolyData.forEach{(polyMorphicData, dataGenericType, dataType, polyVarParamName, isDummyArray, extraCodingKeys) in
+        arrayPolyData.forEach{(polyMorphicData, dataGenericType, dataType, polyVarParamName, isDummyArray, requiredInitializer, extraCodingKeys) in
             guard let polymorphicParamData = polyMorphicData.first?.value.first else {
                 //TODO promt here error
                 return
@@ -82,7 +81,7 @@ public struct JsonPolymorphicMacro: MemberMacro {
                 return  "case \(variable)"
             }
             .joined(separator: "\n")
-        arrayPolyData.forEach{(polyMorphicData, dataGenericType, dataType, polyVarParamName, isDummyArray, extraCodingKeys) in
+        arrayPolyData.forEach{(polyMorphicData, dataGenericType, dataType, polyVarParamName, isDummyArray, requiredInitializer, extraCodingKeys) in
             guard let polymorphicParamData = polyMorphicData.first?.value.first else {
                 //TODO promt here error
                 return
@@ -145,7 +144,9 @@ public struct JsonPolymorphicMacro: MemberMacro {
         
         // MARK: Dynamic Block
         //Add any change here to make key deserialize more dynamic
-        try arrayPolyData.forEach{(polyMorphicData, dataGenericType, dataType, polyVarParamName, isDummyArray, extraCodingKeys) in
+        var requiredInitializerTop = false
+        try arrayPolyData.forEach{(polyMorphicData, dataGenericType, dataType, polyVarParamName, isDummyArray, requiredInitializer, extraCodingKeys) in
+            requiredInitializerTop = requiredInitializer
             guard let polymorphicParamData = polyMorphicData.first?.value.first else {
                 //TODO promt here error
                 return
@@ -256,15 +257,20 @@ public struct JsonPolymorphicMacro: MemberMacro {
         
         
         let initializer = try InitializerDeclSyntax(JsonPolymorphicMacro.generateInitialCode(variablesName: variablesName,
-                                                                                             variablesType: variablesType)) { initBlock }
-        
+                                                                                             variablesType: variablesType,
+                                                                                             requiredInitializer: requiredInitializerTop)) { initBlock }
+
         codeBlockGen.append(DeclSyntax(initializer))
         return codeBlockGen
     }
     
     public static func generateInitialCode(variablesName: [PatternSyntax],
-                                           variablesType: [TypeSyntax]) -> SyntaxNodeString {
-        let initialCode: String = "init(from decoder: Decoder) throws "
+                                           variablesType: [TypeSyntax],
+                                           requiredInitializer: Bool) -> SyntaxNodeString {
+        var initialCode: String = "init(from decoder: Decoder) throws "
+        if (requiredInitializer) {
+            initialCode = "required init(from decoder: Decoder) throws "
+        }
         return SyntaxNodeString(stringLiteral: initialCode)
     }
     
