@@ -145,10 +145,10 @@ public struct JsonPolymorphicMacro: MemberMacro {
         // MARK: Dynamic Block
         //Add any change here to make key deserialize more dynamic
         var requiredInitializerTop = false
-        var callSuperInitTop = false
+        var callSuperInitBottom = false
         try arrayPolyData.forEach{(polyMorphicData, dataGenericType, dataType, polyVarParamName, isDummyArray, requiredInitializer, callSuperInit, extraCodingKeys) in
             requiredInitializerTop = requiredInitializer
-            callSuperInitTop = callSuperInit
+            callSuperInitBottom = callSuperInit
             guard let polymorphicParamData = polyMorphicData.first?.value.first else {
                 //TODO promt here error
                 return
@@ -256,7 +256,7 @@ public struct JsonPolymorphicMacro: MemberMacro {
             }
         }
 
-        if callSuperInitTop {
+        if callSuperInitBottom {
             initBlock.append(CodeBlockItemSyntax("try super.init(from: decoder)"))
         }
 
