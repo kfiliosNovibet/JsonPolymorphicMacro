@@ -9,7 +9,7 @@ import JsonPolymorphicMacroMacros
 
 final class JsonPolymorphicMacroErrorTest: XCTestCase {
     
-    func testJsonPolymporphicClass() throws {
+    func testJsonPolymorphicClass() throws {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """

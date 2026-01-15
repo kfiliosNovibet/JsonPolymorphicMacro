@@ -13,7 +13,7 @@ let testMacros: [String: Macro.Type] = [
 
 final class JsonPolymorphicMacroTests: XCTestCase {
 
-    func testJsonPolymporphicOpenClass() throws {
+    func testJsonPolymorphicOpenClass() throws {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
@@ -65,7 +65,7 @@ final class JsonPolymorphicMacroTests: XCTestCase {
         #endif
     }
 
-    func testJsonPolymporphicClass() throws {
+    func testJsonPolymorphicClass() throws {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
@@ -116,7 +116,7 @@ final class JsonPolymorphicMacroTests: XCTestCase {
         #endif
     }
     
-    func testJsonPolymporphicDicOptional() throws {
+    func testJsonPolymorphicDicOptional() throws {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
@@ -167,7 +167,7 @@ final class JsonPolymorphicMacroTests: XCTestCase {
         #endif
     }
     
-    func testJsonPolymporphicDic() throws {
+    func testJsonPolymorphicDic() throws {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
@@ -218,7 +218,7 @@ final class JsonPolymorphicMacroTests: XCTestCase {
         #endif
     }
     
-    func testJsonPolymporphicArray() throws {
+    func testJsonPolymorphicArray() throws {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
@@ -269,7 +269,7 @@ final class JsonPolymorphicMacroTests: XCTestCase {
         #endif
     }
     
-    func testJsonPolymporphicOptionalArray() throws {
+    func testJsonPolymorphicOptionalArray() throws {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
@@ -321,7 +321,7 @@ final class JsonPolymorphicMacroTests: XCTestCase {
     }
     
     
-    func testJsonPolymporphicMacro() throws {
+    func testJsonPolymorphicMacro() throws {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
@@ -378,7 +378,7 @@ final class JsonPolymorphicMacroTests: XCTestCase {
         #endif
     }
     
-    func testJsonPolymporphicMacroClass() throws {
+    func testJsonPolymorphicMacroClass() throws {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
@@ -439,7 +439,7 @@ final class JsonPolymorphicMacroTests: XCTestCase {
         #endif
     }
     
-    func testJsonPolymporphicManyMacroClass() throws {
+    func testJsonPolymorphicManyMacroClass() throws {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
@@ -509,7 +509,7 @@ final class JsonPolymorphicMacroTests: XCTestCase {
         #endif
     }
     
-    func testJsonPolymporphicExtrakeysClass() throws {
+    func testJsonPolymorphicExtrakeysClass() throws {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
@@ -565,7 +565,7 @@ final class JsonPolymorphicMacroTests: XCTestCase {
         #endif
     }
     
-    func testJsonPolymporphicExtraManykeysClass() throws {
+    func testJsonPolymorphicExtraManykeysClass() throws {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
@@ -625,7 +625,7 @@ final class JsonPolymorphicMacroTests: XCTestCase {
         #endif
     }
 
-    func testJsonPolymporphicCallSuperInitClass() throws {
+    func testJsonPolymorphicCallSuperInitClass() throws {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """

@@ -13,7 +13,7 @@ let testSameLevelMacros: [String: Macro.Type] = [
 
 final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
     
-    func testJsonPolymporphicClass() throws {
+    func testJsonPolymorphicClass() throws {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
@@ -126,7 +126,7 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
     }
     
     
-    func testJsonPolymporphicArrayClass() throws {
+    func testJsonPolymorphicArrayClass() throws {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
@@ -193,7 +193,7 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
         #endif
     }
     
-    func testJsonPolymporphicManyArrayClass() throws {
+    func testJsonPolymorphicManyArrayClass() throws {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
@@ -282,7 +282,7 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
         #endif
     }
     
-    func testJsonPolymporphicArrayAndSingleClass() throws {
+    func testJsonPolymorphicArrayAndSingleClass() throws {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
@@ -363,7 +363,7 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
         #endif
     }
     
-    func testJsonPolymporphicArrayClassSingleExtraKey() throws {
+    func testJsonPolymorphicArrayClassSingleExtraKey() throws {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
@@ -435,7 +435,7 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
         #endif
     }
     
-    func testJsonPolymporphicArrayClassManyExtraKeys() throws {
+    func testJsonPolymorphicArrayClassManyExtraKeys() throws {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
@@ -515,7 +515,7 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
         #endif
     }
 
-    func testJsonPolymporphicArrayClassCallSuperInit() throws {
+    func testJsonPolymorphicArrayClassCallSuperInit() throws {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
