@@ -14,30 +14,33 @@ public final class JsonPolymorphicSameLevelTypeData<T> {
     let decodingTypes: [String: Decodable.Type]
     let decodableType: T.Type
     let requiredInitializers: Bool
+    let callSuperInit: Bool
     let extraCustomCodingKeys: [ExtraCustomCodingKey]
-    
+
     public init(key: String, dummyDecoder: Decodable.Type, polyVarName: String,
                 decodableParentType: T.Type, decodingTypes: [String : Decodable.Type], requiredInitializers: Bool = false,
-                extraCustomCodingKeys: [ExtraCustomCodingKey]) {
+                callSuperInit: Bool = false, extraCustomCodingKeys: [ExtraCustomCodingKey]) {
         self.dummyDecoder = dummyDecoder
         self.polyMorphickey = key
         self.polyMorphicContent = polyVarName
         self.decodingTypes = decodingTypes
         self.decodableType = decodableParentType
         self.requiredInitializers = requiredInitializers
+        self.callSuperInit = callSuperInit
         self.extraCustomCodingKeys = extraCustomCodingKeys
     }
-    
+
     public init(key: String, dummyDecoder: Decodable.Type, polyVarName: String,
                 decodableParentType: T.Type, decodingTypes: [String : Decodable.Type],
-                requiredInitializers: Bool = false) {
+                requiredInitializers: Bool = false, callSuperInit: Bool = false) {
         self.dummyDecoder = dummyDecoder
         self.polyMorphickey = key
         self.polyMorphicContent = polyVarName
         self.decodingTypes = decodingTypes
         self.decodableType = decodableParentType
         self.requiredInitializers = requiredInitializers
+        self.callSuperInit = callSuperInit
         self.extraCustomCodingKeys = []
     }
-    
+
 }

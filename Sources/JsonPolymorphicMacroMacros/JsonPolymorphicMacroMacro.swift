@@ -46,7 +46,7 @@ public struct JsonPolymorphicMacro: MemberMacro {
          **/
         // MARK: Params block
         var codeBlockGen: [DeclSyntax] = [DeclSyntax(stringLiteral: "")]
-        arrayPolyData.forEach{(polyMorphicData, dataGenericType, dataType, polyVarParamName, isDummyArray, requiredInitializer, extraCodingKeys) in
+        arrayPolyData.forEach{(polyMorphicData, dataGenericType, dataType, polyVarParamName, isDummyArray, requiredInitializer, callSuperInit, extraCodingKeys) in
             guard let polymorphicParamData = polyMorphicData.first?.value.first else {
                 //TODO promt here error
                 return
@@ -81,7 +81,7 @@ public struct JsonPolymorphicMacro: MemberMacro {
                 return  "case \(variable)"
             }
             .joined(separator: "\n")
-        arrayPolyData.forEach{(polyMorphicData, dataGenericType, dataType, polyVarParamName, isDummyArray, requiredInitializer, extraCodingKeys) in
+        arrayPolyData.forEach{(polyMorphicData, dataGenericType, dataType, polyVarParamName, isDummyArray, requiredInitializer, callSuperInit, extraCodingKeys) in
             guard let polymorphicParamData = polyMorphicData.first?.value.first else {
                 //TODO promt here error
                 return
@@ -145,8 +145,10 @@ public struct JsonPolymorphicMacro: MemberMacro {
         // MARK: Dynamic Block
         //Add any change here to make key deserialize more dynamic
         var requiredInitializerTop = false
-        try arrayPolyData.forEach{(polyMorphicData, dataGenericType, dataType, polyVarParamName, isDummyArray, requiredInitializer, extraCodingKeys) in
+        var callSuperInitTop = false
+        try arrayPolyData.forEach{(polyMorphicData, dataGenericType, dataType, polyVarParamName, isDummyArray, requiredInitializer, callSuperInit, extraCodingKeys) in
             requiredInitializerTop = requiredInitializer
+            callSuperInitTop = callSuperInit
             guard let polymorphicParamData = polyMorphicData.first?.value.first else {
                 //TODO promt here error
                 return
@@ -253,9 +255,11 @@ public struct JsonPolymorphicMacro: MemberMacro {
                 }
             }
         }
-        
-        
-        
+
+        if callSuperInitTop {
+            initBlock.append(CodeBlockItemSyntax("try super.init(from: decoder)"))
+        }
+
         let initializer = try InitializerDeclSyntax(JsonPolymorphicMacro.generateInitialCode(variablesName: variablesName,
                                                                                              variablesType: variablesType,
                                                                                              requiredInitializer: requiredInitializerTop)) { initBlock }

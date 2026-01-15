@@ -624,4 +624,58 @@ final class JsonPolymorphicMacroTests: XCTestCase {
         throw XCTSkip("macros are only supported when running tests for the host platform")
         #endif
     }
+
+    func testJsonPolymporphicCallSuperInitClass() throws {
+        #if canImport(JsonPolymorphicMacroMacros)
+        assertMacroExpansion(
+            """
+            @JsonPolymorphicKeys((JsonPolymorphicTypeData(key: "type", polyVarName: "content",
+                                                          decodableParentType: Response.self,
+                                                          requiredInitializers: true,
+                                                          callSuperInit: true,
+                                                          decodingTypes: ["Telephones":TelephoneResponse.self,
+                                                                          "Adresses":AdressesResponse.self])))
+            class OpenPolyResponse: Decodable {
+                let cities: [String:String?]?
+            }
+
+            """,
+            expandedSource: """
+            class OpenPolyResponse: Decodable {
+                let cities: [String:String?]?
+
+
+
+                let content: Response?
+
+                let type: String?
+
+                enum CodingKeys: String, CodingKey {
+                    case cities
+                    case type = "type"
+                    case content
+                }
+
+                required init(from decoder: Decoder) throws  {
+                    let values = try decoder.container(keyedBy: CodingKeys.self)
+                    self.cities = try? values.decodeIfPresent([String: String?].self, forKey: .cities)
+                    self.type = try? values.decodeIfPresent(String.self, forKey: .type)
+                    switch self.type {
+                    case "Adresses":
+                        content = try? values.decodeIfPresent(AdressesResponse.self, forKey: .content)
+                    case "Telephones":
+                        content = try? values.decodeIfPresent(TelephoneResponse.self, forKey: .content)
+                    default:
+                        content = nil
+                    }
+                    try super.init(from: decoder)
+                }
+            }
+            """,
+            macros: testMacros
+        )
+        #else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+        #endif
+    }
 }

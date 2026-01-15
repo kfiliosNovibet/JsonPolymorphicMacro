@@ -450,7 +450,7 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
                 let changesDetected: Bool?
                 let betContextModes: [BetContextMode]?
                 let combinations: [BetslipCombination]?
-                
+
             }
             """,
             expandedSource: """
@@ -505,7 +505,69 @@ final class JsonPolymorphicMacroSameLevelTest: XCTestCase {
                     }}}
                     self.selections = selectionsInstance
                 }
-                
+
+            }
+            """,
+            macros: testSameLevelMacros
+        )
+        #else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+        #endif
+    }
+
+    func testJsonPolymporphicArrayClassCallSuperInit() throws {
+        #if canImport(JsonPolymorphicMacroMacros)
+        assertMacroExpansion(
+            """
+            @JsonPolymorphicKeys((JsonPolymorphicSameLevelTypeData(key: "$type",
+                                                                   dummyDecoder: [DummyBetslipState].self,
+                                                                   polyVarName: "selections",
+                                                                   decodableParentType: BetslipBaseSelection.self,
+                                                                   decodingTypes: ["Selection.Single":BetslipSingleSelection.self,
+                                                                                   "Selection.Mutliple":BetslipMultipleSelection.self],
+                                                                   requiredInitializers: true,
+                                                                   callSuperInit: true)))
+            class BetslipStateInputTest: BetslipBaseState {
+                let changesDetected: Bool?
+
+            }
+            """,
+            expandedSource: """
+            class BetslipStateInputTest: BetslipBaseState {
+                let changesDetected: Bool?
+
+
+
+                private(set) var selections: [BetslipBaseSelection]?
+
+                enum CodingKeys: String, CodingKey {
+                    case changesDetected
+                    case selections = "selections"
+                }
+
+                required init(from decoder: Decoder) throws  {
+                    let values = try decoder.container(keyedBy: CodingKeys.self)
+                    self.changesDetected = try? values.decodeIfPresent(Bool.self, forKey: .changesDetected)
+                    let dummyModelselections = try? values.decodeIfPresent([DummyBetslipState].self, forKey: .selections)
+                    var selectionsInstance: [BetslipBaseSelection] = []
+                    if var nestedContainerselections = try? values.nestedUnkeyedContainer(forKey: .selections) {
+                    while !nestedContainerselections.isAtEnd {
+                    let dummyItem = dummyModelselections? [nestedContainerselections.currentIndex]
+                    switch dummyItem?.type {
+                    case "Selection.Mutliple":
+                        if let instance = try? nestedContainerselections.decode(BetslipMultipleSelection.self) {
+                        selectionsInstance.append(instance)}
+                    case "Selection.Single":
+                        if let instance = try? nestedContainerselections.decode(BetslipSingleSelection.self) {
+                        selectionsInstance.append(instance)}
+                    default:
+                        _ = try? nestedContainerselections.decode(DummyBetslipState.self)
+                        selections = nil
+                    }}}
+                    self.selections = selectionsInstance
+                    try super.init(from: decoder)
+                }
+
             }
             """,
             macros: testSameLevelMacros
