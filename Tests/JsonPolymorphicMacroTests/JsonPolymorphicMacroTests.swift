@@ -13,7 +13,7 @@ let testMacros: [String: Macro.Type] = [
 
 final class JsonPolymorphicMacroTests: XCTestCase {
 
-    func testJsonPolymporphicOpenClass() throws {
+    func testJsonPolymorphicOpenClass() throws {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
@@ -65,7 +65,7 @@ final class JsonPolymorphicMacroTests: XCTestCase {
         #endif
     }
 
-    func testJsonPolymporphicClass() throws {
+    func testJsonPolymorphicClass() throws {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
@@ -116,7 +116,7 @@ final class JsonPolymorphicMacroTests: XCTestCase {
         #endif
     }
     
-    func testJsonPolymporphicDicOptional() throws {
+    func testJsonPolymorphicDicOptional() throws {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
@@ -167,7 +167,7 @@ final class JsonPolymorphicMacroTests: XCTestCase {
         #endif
     }
     
-    func testJsonPolymporphicDic() throws {
+    func testJsonPolymorphicDic() throws {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
@@ -218,7 +218,7 @@ final class JsonPolymorphicMacroTests: XCTestCase {
         #endif
     }
     
-    func testJsonPolymporphicArray() throws {
+    func testJsonPolymorphicArray() throws {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
@@ -269,7 +269,7 @@ final class JsonPolymorphicMacroTests: XCTestCase {
         #endif
     }
     
-    func testJsonPolymporphicOptionalArray() throws {
+    func testJsonPolymorphicOptionalArray() throws {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
@@ -321,7 +321,7 @@ final class JsonPolymorphicMacroTests: XCTestCase {
     }
     
     
-    func testJsonPolymporphicMacro() throws {
+    func testJsonPolymorphicMacro() throws {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
@@ -378,7 +378,7 @@ final class JsonPolymorphicMacroTests: XCTestCase {
         #endif
     }
     
-    func testJsonPolymporphicMacroClass() throws {
+    func testJsonPolymorphicMacroClass() throws {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
@@ -439,7 +439,7 @@ final class JsonPolymorphicMacroTests: XCTestCase {
         #endif
     }
     
-    func testJsonPolymporphicManyMacroClass() throws {
+    func testJsonPolymorphicManyMacroClass() throws {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
@@ -509,7 +509,7 @@ final class JsonPolymorphicMacroTests: XCTestCase {
         #endif
     }
     
-    func testJsonPolymporphicExtrakeysClass() throws {
+    func testJsonPolymorphicExtrakeysClass() throws {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
@@ -565,7 +565,7 @@ final class JsonPolymorphicMacroTests: XCTestCase {
         #endif
     }
     
-    func testJsonPolymporphicExtraManykeysClass() throws {
+    func testJsonPolymorphicExtraManykeysClass() throws {
         #if canImport(JsonPolymorphicMacroMacros)
         assertMacroExpansion(
             """
@@ -615,6 +615,60 @@ final class JsonPolymorphicMacroTests: XCTestCase {
                     default:
                         content = nil
                     }
+                }
+            }
+            """,
+            macros: testMacros
+        )
+        #else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+        #endif
+    }
+
+    func testJsonPolymorphicCallSuperInitClass() throws {
+        #if canImport(JsonPolymorphicMacroMacros)
+        assertMacroExpansion(
+            """
+            @JsonPolymorphicKeys((JsonPolymorphicTypeData(key: "type", polyVarName: "content",
+                                                          decodableParentType: Response.self,
+                                                          requiredInitializers: true,
+                                                          callSuperInit: true,
+                                                          decodingTypes: ["Telephones":TelephoneResponse.self,
+                                                                          "Adresses":AdressesResponse.self])))
+            class OpenPolyResponse: Decodable {
+                let cities: [String:String?]?
+            }
+
+            """,
+            expandedSource: """
+            class OpenPolyResponse: Decodable {
+                let cities: [String:String?]?
+
+
+
+                let content: Response?
+
+                let type: String?
+
+                enum CodingKeys: String, CodingKey {
+                    case cities
+                    case type = "type"
+                    case content
+                }
+
+                required init(from decoder: Decoder) throws  {
+                    let values = try decoder.container(keyedBy: CodingKeys.self)
+                    self.cities = try? values.decodeIfPresent([String: String?].self, forKey: .cities)
+                    self.type = try? values.decodeIfPresent(String.self, forKey: .type)
+                    switch self.type {
+                    case "Adresses":
+                        content = try? values.decodeIfPresent(AdressesResponse.self, forKey: .content)
+                    case "Telephones":
+                        content = try? values.decodeIfPresent(TelephoneResponse.self, forKey: .content)
+                    default:
+                        content = nil
+                    }
+                    try super.init(from: decoder)
                 }
             }
             """,
